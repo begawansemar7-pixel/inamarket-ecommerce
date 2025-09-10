@@ -1,0 +1,5 @@
+{
+  "name": "INAMarket",
+  "description": "A modern e-commerce marketplace for Indonesian Micro, Small, and Medium Enterprises (UMKM), inspired by Inamarket.id. Features an AI-powered tool to help sellers generate compelling product descriptions.",
+  "requestFramePermissions": []
+}
