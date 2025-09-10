@@ -9,6 +9,9 @@ interface SellModalProps {
   onClose: () => void;
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+
 const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
@@ -47,16 +50,30 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   const handleFileSelect = (file: File | null) => {
-    if (file && file.type.startsWith('image/')) {
-        if (imagePreview) {
-            URL.revokeObjectURL(imagePreview);
-        }
-        setImage(file);
-        setImagePreview(URL.createObjectURL(file));
-        setError(null);
-    } else if (file) {
-        setError("Silakan pilih file gambar (PNG, JPG, WEBP).");
+    if (!file) return;
+
+    setError(null); // Clear previous errors
+
+    // Validate file type
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setError("Format file tidak didukung. Gunakan PNG, JPG, atau WEBP.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
     }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      setError(`File terlalu besar. Ukuran maksimal adalah ${MAX_FILE_SIZE / 1024 / 1024}MB.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    
+    // If validation passes
+    if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+    }
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,7 +227,7 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
                         <p className="text-xs text-gray-500">PNG, JPG, WEBP hingga 10MB</p>
                       </div>
                     </label>
-                    <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept="image/png, image/jpeg, image/webp" ref={fileInputRef} />
+                    <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept={ACCEPTED_IMAGE_TYPES.join(',')} ref={fileInputRef} />
                   </>
                 )}
               </div>
