@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { generateProductDescription } from '../services/geminiService';
 import Spinner from './Spinner';
 import { SparklesIcon, CopyIcon, CloseIcon, MagicWandIcon, DocumentTextIcon, CheckCircleIcon, ImageIcon, TrashIcon } from './icons/Icons';
+import { fileToBase64 } from '../utils/fileUtils';
 
 interface SellModalProps {
   isOpen: boolean;
@@ -98,7 +99,16 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
     setError(null);
     setGeneratedDescription('');
     try {
-      const description = await generateProductDescription(productName, features);
+      let imageData;
+      if (image) {
+        const base64String = await fileToBase64(image);
+        const parts = base64String.split(';base64,');
+        const mimeType = parts[0].split(':')[1];
+        const data = parts[1];
+        imageData = { mimeType, data };
+      }
+
+      const description = await generateProductDescription(productName, features, imageData);
       setGeneratedDescription(description);
       setActiveTab('result'); // Switch to result tab on success
     } catch (err) {
