@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateProductDescription } from '../services/geminiService';
 import Spinner from './Spinner';
-import { SparklesIcon, CopyIcon, CloseIcon, MagicWandIcon, DocumentTextIcon, CheckCircleIcon, ImageIcon, TrashIcon } from './icons/Icons';
+import { SparklesIcon, CloseIcon, MagicWandIcon, DocumentTextIcon, ImageIcon, TrashIcon, DocumentArrowUpIcon, CheckCircleIcon } from './icons/Icons';
 import { fileToBase64 } from '../utils/fileUtils';
+import SellModalResultView from './SellModalResultView';
 
 interface SellModalProps {
   isOpen: boolean;
@@ -12,6 +13,23 @@ interface SellModalProps {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
+const DEFAULT_PROMPT = `Anda adalah seorang copywriter marketing ahli untuk UMKM Indonesia. Saya akan memberikan nama produk, fitur utama, dan sebuah gambar produk. Buatlah deskripsi produk yang menarik, ramah, dan persuasif berdasarkan semua informasi tersebut.
+  
+Nama Produk: "\${productName}"
+Fitur-fitur Utama: \${features}
+
+Lihat gambar terlampir untuk memahami visual produknya. Tonjolkan aspek visual yang menarik dari gambar.
+
+Gaya bahasanya harus antusias dan ditujukan untuk konsumen di Indonesia. Gunakan bahasa yang sederhana namun efektif. 
+  
+Struktur deskripsi:
+1.  Satu paragraf pembuka yang menarik perhatian.
+2.  Beberapa poin utama (bullet points) yang menonjolkan fitur/keunggulan produk (termasuk dari gambar).
+3.  Satu paragraf penutup yang mengajak untuk membeli.
+
+Hanya berikan output teks deskripsinya saja, tanpa judul atau embel-embel lain.`;
+
+
 const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
@@ -19,13 +37,18 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
   const [generatedDescription, setGeneratedDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copySuccess, setCopySuccess] = useState('');
   const [activeTab, setActiveTab] = useState<'details' | 'result'>('details');
   
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState(DEFAULT_PROMPT);
+  
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   useEffect(() => {
     // Reset state when modal is closed
@@ -35,9 +58,12 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
       setFeatures('');
       setGeneratedDescription('');
       setError(null);
-      setCopySuccess('');
       setActiveTab('details');
       setIsLoading(false);
+      setShowAdvanced(false);
+      setCustomPrompt(DEFAULT_PROMPT);
+      setIsUploading(false);
+      setUploadSuccess(false);
       
       // Cleanup image state
       if (imagePreview) {
@@ -47,7 +73,7 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
       setImagePreview(null);
       setIsDragging(false);
     }
-  }, [isOpen]);
+  }, [isOpen, imagePreview]);
 
   const handleFileSelect = (file: File | null) => {
     if (!file) return;
@@ -125,7 +151,7 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
         imageData = { mimeType, data };
       }
 
-      const description = await generateProductDescription(productName, features, imageData);
+      const description = await generateProductDescription(productName, features, customPrompt, imageData);
       setGeneratedDescription(description);
       setActiveTab('result'); // Switch to result tab on success
     } catch (err) {
@@ -134,14 +160,19 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
       setIsLoading(false);
     }
   };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(generatedDescription).then(() => {
-        setCopySuccess('Deskripsi berhasil disalin!');
-        setTimeout(() => setCopySuccess(''), 2000);
-    }, () => {
-        setCopySuccess('Gagal menyalin.');
-    });
+  
+  const handleSaveAndUpload = () => {
+    setIsUploading(true);
+    setError(null);
+    // Simulate API call
+    setTimeout(() => {
+        setIsUploading(false);
+        setUploadSuccess(true);
+        // Close modal after showing success message
+        setTimeout(() => {
+            onClose();
+        }, 2000);
+    }, 2000);
   };
 
   if (!isOpen) return null;
@@ -184,123 +215,138 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div className="p-6 space-y-4 overflow-y-auto flex-grow relative">
-          {isLoading && (
-            <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10">
-              <Spinner />
-              <p className="mt-3 text-gray-600 font-medium">AI sedang meracik kata-kata terbaik...</p>
-            </div>
-          )}
-
-          {activeTab === 'details' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Foto Produk</label>
-                {imagePreview ? (
-                  <div className="relative group">
-                    <img src={imagePreview} alt="Product preview" className="w-full h-48 object-cover rounded-md border border-gray-200" />
-                    <button
-                      onClick={removeImage}
-                      className="absolute top-2 right-2 bg-black bg-opacity-60 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-none"
-                      aria-label="Remove image"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                ) : (
+          {(isLoading || isUploading || uploadSuccess) && (
+            <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10 p-6 text-center">
+              {isLoading && (
                   <>
-                    <label
-                      htmlFor="file-upload"
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer transition-colors
-                        ${isDragging ? 'border-primary bg-primary-light/10' : 'hover:border-gray-400'}`}
-                    >
-                      <div className="space-y-1 text-center">
-                        <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <div className="flex text-sm text-gray-600">
-                           <span className="relative rounded-md font-medium text-primary hover:text-primary-dark">
-                              Unggah file
-                            </span>
-                          <p className="pl-1">atau seret dan lepas</p>
-                        </div>
-                        <p className="text-xs text-gray-500">PNG, JPG, WEBP hingga 10MB</p>
-                      </div>
-                    </label>
-                    <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept={ACCEPTED_IMAGE_TYPES.join(',')} ref={fileInputRef} />
+                    <Spinner />
+                    <p className="mt-3 text-gray-600 font-medium">AI sedang meracik kata-kata terbaik...</p>
                   </>
-                )}
-              </div>
-              <div>
-                <label htmlFor="productName" className="block text-sm font-medium text-gray-700 mb-1">Nama Produk</label>
-                <input
-                  type="text"
-                  id="productName"
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
-                  placeholder="Contoh: Kopi Gayo Asli Aceh"
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
-                />
-              </div>
-              <div>
-                <label htmlFor="productPrice" className="block text-sm font-medium text-gray-700 mb-1">Harga Produk (Rp)</label>
-                <input
-                  type="number"
-                  id="productPrice"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="Contoh: 75000"
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
-                />
-              </div>
-              <div>
-                <label htmlFor="features" className="block text-sm font-medium text-gray-700 mb-1">Fitur / Keunggulan Utama</label>
-                <textarea
-                  id="features"
-                  rows={4}
-                  value={features}
-                  onChange={(e) => setFeatures(e.target.value)}
-                  placeholder="Contoh: 100% Arabika, aroma kuat, sedikit asam, ditanam organik"
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
-                />
-              </div>
-              {error && <p className="text-red-600 text-sm">{error}</p>}
-            </div>
-          )}
-
-          {activeTab === 'result' && (
-            <div>
-              {generatedDescription ? (
-                <div className="space-y-3">
-                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-800">Hasil Deskripsi AI:</h3>
-                    <button onClick={handleCopy} className="flex items-center text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-1.5 px-3 rounded-md transition-colors">
-                        <CopyIcon className="w-4 h-4 mr-1.5"/>
-                        Salin
-                    </button>
-                  </div>
-                  <textarea
-                    value={generatedDescription}
-                    onChange={(e) => setGeneratedDescription(e.target.value)}
-                    rows={10}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md font-sans text-sm text-gray-800 focus:ring-primary focus:border-primary"
-                    aria-label="Generated product description"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Anda dapat menyunting teks di atas sebelum menyalinnya.</p>
-                  {copySuccess && (
-                      <div className="flex items-center text-green-600 text-sm font-medium">
-                          <CheckCircleIcon className="w-5 h-5 mr-1.5" />
-                          {copySuccess}
-                      </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-10">
-                  <p className="text-gray-500">Deskripsi akan muncul di sini setelah dibuat.</p>
+              )}
+              {isUploading && (
+                  <>
+                    <Spinner />
+                    <p className="mt-3 text-gray-600 font-medium">Mengunggah produk Anda ke marketplace...</p>
+                  </>
+              )}
+              {uploadSuccess && (
+                <div className="animate-scale-in">
+                    <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto" />
+                    <p className="mt-3 text-lg text-gray-700 font-semibold">Produk Berhasil Diunggah!</p>
+                    <p className="text-sm text-gray-500">Anda akan segera dialihkan.</p>
                 </div>
               )}
             </div>
           )}
+
+          <div style={{ visibility: (isUploading || uploadSuccess) ? 'hidden' : 'visible' }}>
+            {activeTab === 'details' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Foto Produk</label>
+                  {imagePreview ? (
+                    <div className="relative group">
+                      <img src={imagePreview} alt="Product preview" className="w-full h-48 object-cover rounded-md border border-gray-200" />
+                      <button
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 bg-black bg-opacity-60 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-none"
+                        aria-label="Remove image"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <label
+                        htmlFor="file-upload"
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer transition-colors
+                          ${isDragging ? 'border-primary bg-primary-light/10' : 'hover:border-gray-400'}`}
+                      >
+                        <div className="space-y-1 text-center">
+                          <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                          <div className="flex text-sm text-gray-600">
+                             <span className="relative rounded-md font-medium text-primary hover:text-primary-dark">
+                                Unggah file
+                              </span>
+                            <p className="pl-1">atau seret dan lepas</p>
+                          </div>
+                          <p className="text-xs text-gray-500">PNG, JPG, WEBP hingga 10MB</p>
+                        </div>
+                      </label>
+                      <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept={ACCEPTED_IMAGE_TYPES.join(',')} ref={fileInputRef} />
+                    </>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="productName" className="block text-sm font-medium text-gray-700 mb-1">Nama Produk</label>
+                  <input
+                    type="text"
+                    id="productName"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    placeholder="Contoh: Kopi Gayo Asli Aceh"
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="productPrice" className="block text-sm font-medium text-gray-700 mb-1">Harga Produk (Rp)</label>
+                  <input
+                    type="number"
+                    id="productPrice"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="Contoh: 75000"
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="features" className="block text-sm font-medium text-gray-700 mb-1">Fitur / Keunggulan Utama</label>
+                  <textarea
+                    id="features"
+                    rows={4}
+                    value={features}
+                    onChange={(e) => setFeatures(e.target.value)}
+                    placeholder="Contoh: 100% Arabika, aroma kuat, sedikit asam, ditanam organik"
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="text-sm font-medium text-primary hover:text-primary-dark"
+                  >
+                      Opsi Lanjutan {showAdvanced ? '▴' : '▾'}
+                  </button>
+                  {showAdvanced && (
+                      <div className="mt-2">
+                          <label htmlFor="customPrompt" className="block text-sm font-medium text-gray-700 mb-1">Instruksi Kustom untuk AI</label>
+                           <textarea
+                              id="customPrompt"
+                              rows={8}
+                              value={customPrompt}
+                              onChange={(e) => setCustomPrompt(e.target.value)}
+                              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-xs font-mono"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Gunakan <code className="bg-gray-200 px-1 rounded">\${productName}</code> dan <code className="bg-gray-200 px-1 rounded">\${features}</code> sebagai placeholder.</p>
+                      </div>
+                  )}
+                </div>
+
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+              </div>
+            )}
+
+            {activeTab === 'result' && (
+              <SellModalResultView
+                  description={generatedDescription}
+                  onDescriptionChange={setGeneratedDescription}
+              />
+            )}
+          </div>
         </div>
         
         {activeTab === 'details' && (
@@ -315,6 +361,20 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
         )}
+        
+        {activeTab === 'result' && generatedDescription && (
+            <div className="p-5 bg-gray-50 rounded-b-lg border-t">
+              <button
+                onClick={handleSaveAndUpload}
+                disabled={isUploading || uploadSuccess}
+                className="w-full flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-md transition-colors disabled:bg-green-400 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              >
+                <DocumentArrowUpIcon className="w-5 h-5 mr-2" />
+                Simpan & Unggah ke Marketplace
+              </button>
+            </div>
+        )}
+
       </div>
       <style>{`
         @keyframes fade-in-up {

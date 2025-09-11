@@ -1,5 +1,6 @@
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { fileToBase64 } from "../utils/fileUtils";
+
+// Fix: Import GenerateContentParameters for proper typing.
+import { GoogleGenAI, GenerateContentResponse, GenerateContentParameters } from "@google/genai";
 
 // Ensure the API key is available as an environment variable
 if (!process.env.API_KEY) {
@@ -16,35 +17,33 @@ interface ImageData {
 export const generateProductDescription = async (
   productName: string,
   features: string,
+  promptTemplate: string,
   image?: ImageData,
 ): Promise<string> => {
-  const textPrompt = `Anda adalah seorang copywriter marketing ahli untuk UMKM Indonesia. Saya akan memberikan nama produk, fitur utama, dan sebuah gambar produk. Buatlah deskripsi produk yang menarik, ramah, dan persuasif berdasarkan semua informasi tersebut.
-  
-Nama Produk: "${productName}"
-Fitur-fitur Utama: ${features}
+  const finalPrompt = promptTemplate
+    .replace(/\$\{productName\}/g, productName)
+    .replace(/\$\{features\}/g, features);
 
-Lihat gambar terlampir untuk memahami visual produknya. Tonjolkan aspek visual yang menarik dari gambar.
-
-Gaya bahasanya harus antusias dan ditujukan untuk konsumen di Indonesia. Gunakan bahasa yang sederhana namun efektif. 
-  
-Struktur deskripsi:
-1.  Satu paragraf pembuka yang menarik perhatian.
-2.  Beberapa poin utama (bullet points) yang menonjolkan fitur/keunggulan produk (termasuk dari gambar).
-3.  Satu paragraf penutup yang mengajak untuk membeli.
-
-Hanya berikan output teks deskripsinya saja, tanpa judul atau embel-embel lain.`;
-
-  const contents: any = { parts: [{ text: textPrompt }] };
+  // Fix: Use the correct type for contents and handle single vs. multipart requests as per guidelines.
+  let contents: GenerateContentParameters['contents'];
 
   if (image) {
-      contents.parts.push({
+    // For multipart, provide image part first, then text part.
+    contents = {
+      parts: [
+        {
           inlineData: {
-              mimeType: image.mimeType,
-              data: image.data,
-          }
-      })
+            mimeType: image.mimeType,
+            data: image.data,
+          },
+        },
+        { text: finalPrompt },
+      ],
+    };
+  } else {
+    // For text-only, a simple string is sufficient.
+    contents = finalPrompt;
   }
-
 
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({

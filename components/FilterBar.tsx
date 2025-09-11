@@ -1,4 +1,18 @@
 import React from 'react';
+import FilterAccordion from './FilterAccordion';
+import { CloseIcon } from './icons/Icons';
+
+interface FilterSidebarProps {
+  filters: {
+    category: string;
+    price: number[];
+    location: string;
+  };
+  onFilterChange: (filterName: keyof FilterSidebarProps['filters'], value: string | number | number[]) => void;
+  maxPrice: number;
+  locations: string[];
+  onReset: () => void;
+}
 
 const formatRupiah = (price: number): string => {
     return new Intl.NumberFormat('id-ID', {
@@ -8,76 +22,123 @@ const formatRupiah = (price: number): string => {
     }).format(price);
 };
 
-interface FilterBarProps {
-  filters: {
-    category: string;
-    price: number;
-    location: string;
-  };
-  onFilterChange: (filterName: keyof FilterBarProps['filters'], value: string | number) => void;
-  maxPrice: number;
-  locations: string[];
-  categories: string[];
-  onReset: () => void;
-}
-
-const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, maxPrice, locations, categories, onReset }) => {
-  return (
-    <div className="bg-white p-4 rounded-lg shadow-md mb-8 sticky top-[81px] z-40">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-        <div>
-          <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700">Kategori</label>
-          <select
-            id="category-filter"
-            name="category"
-            value={filters.category}
-            onChange={(e) => onFilterChange('category', e.target.value)}
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-          >
-            <option value="all">Semua Kategori</option>
-            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
-        </div>
-        
-        <div className="lg:col-span-1">
-          <label htmlFor="price-filter" className="block text-sm font-medium text-gray-700">
-            Harga Maksimal: <span className="font-bold text-primary-dark">{formatRupiah(filters.price)}</span>
-          </label>
-          <input
-            id="price-filter"
-            type="range"
-            min="0"
-            max={maxPrice}
-            step={1000}
-            value={filters.price}
-            onChange={(e) => onFilterChange('price', Number(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="location-filter" className="block text-sm font-medium text-gray-700">Lokasi Penjual</label>
-          <select
-            id="location-filter"
-            name="location"
-            value={filters.location}
-            onChange={(e) => onFilterChange('location', e.target.value)}
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-          >
-            <option value="all">Semua Lokasi</option>
-            {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-          </select>
-        </div>
-        
-        <button
-            onClick={onReset}
-            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-md transition-colors w-full"
-        >
-            Reset Filter
+const FilterPill: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
+    <div className="flex items-center bg-primary-light/20 text-primary-dark text-sm font-medium pl-3 pr-2 py-1 rounded-full animate-scale-in">
+        <span>{label}</span>
+        <button onClick={onRemove} className="ml-1.5 p-0.5 rounded-full hover:bg-primary/20" aria-label={`Remove ${label} filter`}>
+            <CloseIcon className="w-3 h-3" />
         </button>
+    </div>
+);
+
+
+const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange, maxPrice, locations, onReset }) => {
+  const isCategoryActive = filters.category !== 'all';
+  const isLocationActive = filters.location !== 'all';
+  const isPriceActive = filters.price[0] > 0 || filters.price[1] < maxPrice;
+  const anyFilterActive = isCategoryActive || isLocationActive || isPriceActive;
+  
+  const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newMin = Math.min(Number(e.target.value), filters.price[1] - 1000); // Prevent crossing with a gap
+      onFilterChange('price', [newMin, filters.price[1]]);
+  };
+
+  const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newMax = Math.max(Number(e.target.value), filters.price[0] + 1000); // Prevent crossing with a gap
+      onFilterChange('price', [filters.price[0], newMax]);
+  };
+  
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md sticky top-24">
+      <div className="flex justify-between items-center pb-4 border-b">
+        <h2 className="text-xl font-bold text-gray-800">Filter</h2>
+        <button onClick={onReset} className="text-sm font-medium text-primary hover:text-primary-dark">
+          Reset Semua
+        </button>
+      </div>
+
+      {anyFilterActive && (
+          <div className="py-4 border-b">
+              <h3 className="text-md font-semibold text-gray-800 mb-3">Filter Aktif</h3>
+              <div className="flex flex-wrap gap-2">
+                  {isCategoryActive && (
+                      <FilterPill label={filters.category} onRemove={() => onFilterChange('category', 'all')} />
+                  )}
+                  {isLocationActive && (
+                      <FilterPill label={filters.location} onRemove={() => onFilterChange('location', 'all')} />
+                  )}
+                  {isPriceActive && (
+                      <FilterPill label={`${formatRupiah(filters.price[0])} - ${formatRupiah(filters.price[1])}`} onRemove={() => onFilterChange('price', [0, maxPrice])} />
+                  )}
+              </div>
+          </div>
+      )}
+
+      <div className="mt-4">
+        <FilterAccordion title="Harga" defaultOpen={true}>
+            <div className="pt-4 px-1">
+                <div className="relative h-5">
+                    {/* Track */}
+                    <div className="absolute w-full h-1 bg-gray-200 rounded-full top-1/2 -translate-y-1/2" />
+                    {/* Selected Range */}
+                    <div
+                        className="absolute h-1 bg-primary rounded-full top-1/2 -translate-y-1/2"
+                        style={{
+                            left: `${(filters.price[0] / maxPrice) * 100}%`,
+                            right: `${100 - (filters.price[1] / maxPrice) * 100}%`,
+                        }}
+                    />
+                    
+                    {/* Min Slider */}
+                    <input
+                        type="range"
+                        min="0"
+                        max={maxPrice}
+                        value={filters.price[0]}
+                        onChange={handleMinPriceChange}
+                        className="absolute w-full h-5 appearance-none bg-transparent pointer-events-none range-slider-thumb"
+                        aria-label="Minimum price"
+                    />
+                    {/* Max Slider */}
+                    <input
+                        type="range"
+                        min="0"
+                        max={maxPrice}
+                        value={filters.price[1]}
+                        onChange={handleMaxPriceChange}
+                        className="absolute w-full h-5 appearance-none bg-transparent pointer-events-none range-slider-thumb"
+                        aria-label="Maximum price"
+                    />
+                </div>
+                <div className="flex justify-between text-sm text-gray-600 mt-3">
+                <span>{formatRupiah(filters.price[0])}</span>
+                <span>{formatRupiah(filters.price[1])}</span>
+                </div>
+          </div>
+        </FilterAccordion>
+
+        <FilterAccordion title="Lokasi" defaultOpen={true}>
+          <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+            <button
+                onClick={() => onFilterChange('location', 'all')}
+                className={`w-full text-left p-2 rounded-md text-sm transition-colors ${filters.location === 'all' ? 'font-bold text-primary bg-primary-light/10' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+                Semua Lokasi
+            </button>
+            {locations.map((location) => (
+              <button
+                key={location}
+                onClick={() => onFilterChange('location', location)}
+                className={`w-full text-left p-2 rounded-md text-sm transition-colors ${filters.location === location ? 'font-bold text-primary bg-primary-light/10' : 'text-gray-700 hover:bg-gray-100'}`}
+              >
+                {location}
+              </button>
+            ))}
+          </div>
+        </FilterAccordion>
       </div>
     </div>
   );
 };
 
-export default FilterBar;
+export default FilterSidebar;
