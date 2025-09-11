@@ -1,54 +1,91 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Product, CartItem, Conversation, Message, Address, ShippingOption } from './types';
-import { PRODUCTS, CATEGORIES, SHIPPING_OPTIONS } from './constants';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Hero from './components/Hero';
-import CategoryGrid from './components/CategoryGrid';
-import ProductGrid from './components/ProductGrid';
-import FilterSidebar from './components/FilterBar';
-import SellModal from './components/SellModal';
-import ProductDetailModal from './components/ProductDetailModal';
-import AuthPage from './pages/AuthPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import AdminLoginPage from './pages/AdminLoginPage';
-import Toast, { ToastMessage } from './components/Toast';
+import SellModal from './components/SellModal';
+import AuthPage from './pages/AuthPage';
+import ProductDetailModal from './components/ProductDetailModal';
+import Toast from './components/Toast';
 import ChatPanel from './components/chat/ChatPanel';
-import AddProductModal from './components/AddProductModal';
+import { Product, CartItem, ToastMessage, Conversation } from './types';
+import { PRODUCTS, LOCATIONS } from './constants';
+import Hero from './components/Hero';
+import CategoryGrid from './components/CategoryGrid';
+import ProductGrid from './components/ProductGrid';
+import FilterBar from './components/FilterBar';
+import PromoBanner from './components/PromoBanner';
+import { AdjustmentsHorizontalIcon, CloseIcon } from './components/icons/Icons';
 
 type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login';
 type UserRole = 'Buyer' | 'Seller' | 'Admin';
 
-const HomePage: React.FC<{
-    onProductClick: (product: Product) => void;
-    onAddToCart: (product: Product, quantity: number) => void;
-}> = ({ onProductClick, onAddToCart }) => {
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>(PRODUCTS);
-    const maxPrice = useMemo(() => Math.max(...PRODUCTS.map(p => p.price)), []);
-    const locations = useMemo(() => [...new Set(PRODUCTS.map(p => p.location))], []);
+const App: React.FC = () => {
+    // Page navigation state
+    const [page, setPage] = useState<Page>('home');
 
+    // Authentication state
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userRole, setUserRole] = useState<UserRole | null>(null);
+
+    // Modal states
+    const [isSellModalOpen, setSellModalOpen] = useState(false);
+    const [isAuthModalOpen, setAuthModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    
+    // Cart state
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+    // Toast state
+    const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+    // Chat state
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [isChatOpen, setChatOpen] = useState(false);
+    const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+    const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+    
+    // Product and filter state
+    const [allProducts] = useState<Product[]>(PRODUCTS);
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>(PRODUCTS);
     const [filters, setFilters] = useState({
         category: 'all',
-        price: [0, maxPrice],
+        price: [0, 1500000], 
         location: 'all',
     });
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-    const handleFilterChange = useCallback((filterName: keyof typeof filters, value: string | number[]) => {
-        setFilters(prev => ({ ...prev, [filterName]: value }));
-    }, []);
-
-    const resetFilters = useCallback(() => {
-        setFilters({
-            category: 'all',
-            price: [0, maxPrice],
-            location: 'all',
-        });
-    }, [maxPrice]);
+    // Memoized list for featured products
+    const featuredProducts = useMemo(() => {
+        return [...allProducts]
+            .sort((a, b) => (b.sales || 0) - (a.sales || 0))
+            .slice(0, 5);
+    }, [allProducts]);
     
+    // Memoized list for promotional products
+    const promoProducts = useMemo(() => {
+        return allProducts.filter(p => p.originalPrice && p.originalPrice > p.price);
+    }, [allProducts]);
+    
+    const activeFilterCount = useMemo(() => {
+        const isCategoryActive = filters.category !== 'all';
+        const isLocationActive = filters.location !== 'all';
+        const isPriceActive = filters.price[0] > 0 || filters.price[1] < 1500000;
+        return [isCategoryActive, isLocationActive, isPriceActive].filter(Boolean).length;
+    }, [filters]);
+
+    // Effect to update unread message count
     useEffect(() => {
-        let tempProducts = [...PRODUCTS];
+        const unreadCount = conversations.filter(c => c.unreadByBuyer).length;
+        setUnreadMessageCount(unreadCount);
+    }, [conversations]);
+
+    // Filtering logic
+    useEffect(() => {
+        let tempProducts = [...allProducts];
+
         if (filters.category !== 'all') {
             tempProducts = tempProducts.filter(p => p.category === filters.category);
         }
@@ -56,88 +93,71 @@ const HomePage: React.FC<{
             tempProducts = tempProducts.filter(p => p.location === filters.location);
         }
         tempProducts = tempProducts.filter(p => p.price >= filters.price[0] && p.price <= filters.price[1]);
-
+        
         setFilteredProducts(tempProducts);
-    }, [filters]);
+    }, [filters, allProducts]);
 
-
-    return (
-        <>
-            <Hero />
-            <CategoryGrid onCategorySelect={(category) => handleFilterChange('category', category)} />
-            <div className="container mx-auto px-4 mt-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <aside className="md:col-span-1">
-                       <FilterSidebar 
-                            filters={filters}
-                            onFilterChange={handleFilterChange}
-                            maxPrice={maxPrice}
-                            locations={locations}
-                            onReset={resetFilters}
-                       />
-                    </aside>
-                    <main className="md:col-span-3">
-                        <ProductGrid
-                            title="Produk Populer"
-                            products={filteredProducts}
-                            onProductClick={onProductClick}
-                            onAddToCart={onAddToCart}
-                            onResetFilters={resetFilters}
-                        />
-                    </main>
-                </div>
-            </div>
-        </>
-    );
-};
-
-
-const App: React.FC = () => {
-    const [activePage, setActivePage] = useState<Page>('home');
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userRole, setUserRole] = useState<UserRole | null>(null);
+    const handleFilterChange = (filterName: keyof typeof filters, value: any) => {
+        setFilters(prev => ({...prev, [filterName]: value}));
+    };
     
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [toasts, setToasts] = useState<ToastMessage[]>([]);
-
-    const [isSellModalOpen, setSellModalOpen] = useState(false);
-    const [isAuthModalOpen, setAuthModalOpen] = useState(false);
-    const [isProductDetailModalOpen, setProductDetailModalOpen] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-    
-    // Chat state
-    const [isChatOpen, setChatOpen] = useState(false);
-    const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const unreadMessageCount = conversations.filter(c => c.unreadByBuyer).length;
-
-    // Seller product management state
-    const [sellerProducts, setSellerProducts] = useState<Product[]>(() => {
-        // Simulate fetching products for the logged-in seller
-        return PRODUCTS.filter(p => p.seller === 'Kopi Kita' || p.seller === 'Batik Indah');
-    });
-    const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
-
-    const addToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
-        const id = new Date().toISOString();
-        setToasts(prev => [...prev, { id, type, message }]);
-    }, []);
-    
-    const dismissToast = (id: string) => {
-        setToasts(prev => prev.filter(t => t.id !== id));
+    const handleCategorySelect = (categoryName: string) => {
+        handleFilterChange('category', categoryName);
+        document.getElementById('product-section')?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    const resetFilters = () => {
+        setFilters({ category: 'all', price: [0, 1500000], location: 'all' });
+    };
+
+    // Toast helper function
+    const addToast = (type: ToastMessage['type'], message: string) => {
+        const id = crypto.randomUUID();
+        setToasts(prev => [...prev, { id, type, message }]);
+    };
+
+    const removeToast = (id: string) => {
+        setToasts(prev => prev.filter(toast => toast.id !== id));
+    };
+
+    // Navigation handler
+    const handleNavigate = (newPage: Page) => {
+        if (newPage === 'checkout' && cartItems.length === 0) {
+            addToast('info', 'Keranjang Anda kosong. Silakan tambahkan produk terlebih dahulu.');
+            return;
+        }
+        setPage(newPage);
+        window.scrollTo(0, 0);
+    };
+
+    // Auth handlers
+    const handleLoginSuccess = (role: UserRole) => {
+        setIsAuthenticated(true);
+        setUserRole(role);
+        setAuthModalOpen(false);
+        addToast('success', `Berhasil masuk sebagai ${role}!`);
+        if (role === 'Seller') {
+            setPage('dashboard');
+        }
+    };
+    
+    const handleLogout = () => {
+        setIsAuthenticated(false);
+        setUserRole(null);
+        setPage('home');
+        addToast('info', 'Anda telah keluar.');
+    };
+    
+    // Cart handlers
     const handleAddToCart = (product: Product, quantity: number) => {
-        setCartItems(prevItems => {
-            const existingItem = prevItems.find(item => item.id === product.id);
+        setCartItems(prev => {
+            const existingItem = prev.find(item => item.id === product.id);
             if (existingItem) {
-                return prevItems.map(item =>
-                    item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
-                );
+                return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
             }
-            return [...prevItems, { ...product, quantity }];
+            return [...prev, { ...product, quantity }];
         });
-        addToast('success', `${product.name} ditambahkan ke keranjang!`);
+        addToast('success', `${product.name} ditambahkan ke keranjang.`);
     };
     
     const handleUpdateCartQuantity = (productId: number, newQuantity: number) => {
@@ -145,71 +165,21 @@ const App: React.FC = () => {
             handleRemoveFromCart(productId);
             return;
         }
-        setCartItems(prev => prev.map(item => item.id === productId ? {...item, quantity: newQuantity} : item));
+        setCartItems(prev => prev.map(item => item.id === productId ? { ...item, quantity: newQuantity } : item));
     };
 
     const handleRemoveFromCart = (productId: number) => {
         setCartItems(prev => prev.filter(item => item.id !== productId));
-        addToast('info', `Item dihapus dari keranjang.`);
+        addToast('info', 'Produk dihapus dari keranjang.');
     };
 
-    const handleProductClick = (product: Product) => {
-        setSelectedProduct(product);
-        setProductDetailModalOpen(true);
-    };
-
-    const handleLoginSuccess = (role: UserRole) => {
-        setIsAuthenticated(true);
-        setUserRole(role);
-        setAuthModalOpen(false);
-        if (role === 'Seller' || role === 'Admin') {
-            setActivePage('dashboard');
-        }
-        addToast('success', `Selamat datang, ${role}!`);
-    };
-
-    const handleLogout = () => {
-        setIsAuthenticated(false);
-        setUserRole(null);
-        setActivePage('home');
-        addToast('info', 'Anda telah keluar.');
-    };
-
-    const handleNavigate = (page: Page) => {
-        if (page === 'checkout' && cartItems.length === 0) {
-            addToast('info', 'Keranjang Anda kosong. Tambahkan produk untuk checkout.');
-            setActivePage('home');
-            return;
-        }
-        if (page === 'checkout' && !isAuthenticated) {
-            addToast('info', 'Silakan masuk untuk melanjutkan checkout.');
-            setAuthModalOpen(true);
-            return;
-        }
-        setActivePage(page);
-        window.scrollTo(0, 0);
-    };
-
-    const handleSaveProduct = (newProductData: Omit<Product, 'id' | 'seller' | 'reviews' | 'sellerVerification' | 'sales'>) => {
-        const newProduct: Product = {
-            ...newProductData,
-            id: Math.max(...[...PRODUCTS, ...sellerProducts].map(p => p.id)) + 1,
-            seller: 'Toko Saya', // Placeholder for logged-in seller name
-            sellerVerification: 'verified', // Assume seller is verified
-            reviews: [],
-            sales: 0,
-        };
-        setSellerProducts(prev => [newProduct, ...prev]);
-        setAddProductModalOpen(false);
-        addToast('success', 'Produk berhasil ditambahkan!');
-    };
-
+    // Chat handlers
     const handleStartChat = (product: Product) => {
-        const conversationId = `${product.seller}-${product.id}`;
-        const existingConvo = conversations.find(c => c.id === conversationId);
+        const convoId = `${product.id}-${product.seller}`;
+        const existingConvo = conversations.find(c => c.id === convoId);
         if (!existingConvo) {
             const newConvo: Conversation = {
-                id: conversationId,
+                id: convoId,
                 productId: product.id,
                 productName: product.name,
                 productImageUrl: product.imageUrl,
@@ -219,155 +189,210 @@ const App: React.FC = () => {
             };
             setConversations(prev => [newConvo, ...prev]);
         }
-        setActiveConversationId(conversationId);
+        setActiveConversationId(convoId);
         setChatOpen(true);
     };
-
+    
     const handleSendMessage = (conversationId: string, text: string) => {
-        const newMessage: Message = {
-            id: `msg-${Date.now()}`,
+        const newMessage = {
+            id: crypto.randomUUID(),
+            sender: 'buyer' as const,
             text,
-            sender: 'buyer',
-            timestamp: Date.now()
+            timestamp: new Date().toISOString()
         };
+        
         setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, messages: [...c.messages, newMessage], unreadByBuyer: false } : c));
         
         // Simulate seller response
         setTimeout(() => {
-            const sellerMessage: Message = {
-                id: `msg-${Date.now() + 1}`,
-                text: "Terima kasih atas pesan Anda. Kami akan segera merespons.",
-                sender: 'seller',
-                timestamp: Date.now() + 1
+            const sellerMessage = {
+                id: crypto.randomUUID(),
+                sender: 'seller' as const,
+                text: 'Terima kasih telah menghubungi kami. Segera kami balas ya.',
+                timestamp: new Date().toISOString()
             };
             setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, messages: [...c.messages, sellerMessage], unreadByBuyer: true } : c));
-        }, 2000);
-    };
-
-    const handleSelectConversation = (id: string) => {
-        setActiveConversationId(id);
-        setConversations(prev => prev.map(c => c.id === id ? { ...c, unreadByBuyer: false } : c));
+            addToast('info', 'Anda memiliki pesan baru!');
+        }, 1500);
     };
 
     const renderPage = () => {
-        switch (activePage) {
-            case 'cart':
-                return <CartPage items={cartItems} onUpdateQuantity={handleUpdateCartQuantity} onRemoveItem={handleRemoveFromCart} />;
-            case 'checkout':
-                return <CheckoutPage 
-                            items={cartItems} 
-                            onBackToHome={() => setActivePage('home')} 
-                            cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
-                            onLogout={handleLogout}
-                            isAuthenticated={isAuthenticated}
-                            onLoginClick={() => setAuthModalOpen(true)}
-                            onNavigate={handleNavigate}
-                            unreadMessageCount={unreadMessageCount}
-                            onChatClick={() => setChatOpen(true)}
-                        />;
-            case 'dashboard':
-                 return <SellerDashboardPage 
-                            onNavigate={handleNavigate}
-                            cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
-                            onLogout={handleLogout}
-                            isAuthenticated={isAuthenticated}
-                            onLoginClick={() => setAuthModalOpen(true)}
-                            unreadMessageCount={unreadMessageCount}
-                            onChatClick={() => setChatOpen(true)}
-                            sellerProducts={sellerProducts}
-                            onOpenAddProductModal={() => setAddProductModalOpen(true)}
-                         />;
-            case 'admin-login':
-                return <AdminLoginPage onLogin={handleLoginSuccess} onBackToHome={() => setActivePage('home')} />;
+        switch(page) {
             case 'home':
+                return (
+                    <>
+                        <Hero />
+                        <section className="py-8 bg-white">
+                          <div className="container mx-auto px-4">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-6">Kategori Pilihan</h2>
+                            <CategoryGrid onCategorySelect={handleCategorySelect} />
+                          </div>
+                        </section>
+                        
+                        {promoProducts.length > 0 && (
+                            <section className="py-8 bg-gray-50">
+                              <div className="container mx-auto px-4">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Produk Promosi</h2>
+                                <ProductGrid products={promoProducts} onViewDetails={setSelectedProduct} />
+                              </div>
+                            </section>
+                        )}
+                        <section className="py-8 bg-white">
+                          <div className="container mx-auto px-4">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-6">Produk Unggulan</h2>
+                            <ProductGrid products={featuredProducts} onViewDetails={setSelectedProduct} />
+                          </div>
+                        </section>
+                        
+                        <PromoBanner />
+
+                        <section id="product-section" className="py-8 bg-gray-50">
+                          <div className="container mx-auto px-4">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-6">Jelajahi Produk UMKM</h2>
+                            
+                             {/* Mobile Filter Trigger */}
+                            <div className="lg:hidden mb-4">
+                                <button
+                                    onClick={() => setIsFilterOpen(true)}
+                                    className="w-full flex justify-between items-center bg-white p-3 rounded-lg shadow border transition-colors hover:bg-gray-50"
+                                >
+                                    <span className="flex items-center font-semibold text-gray-700">
+                                        <AdjustmentsHorizontalIcon className="w-5 h-5 mr-2 text-primary" />
+                                        Filter
+                                    </span>
+                                    {activeFilterCount > 0 && (
+                                        <span className="bg-primary text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center animate-scale-in">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
+
+                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+                                <div className="hidden lg:block lg:col-span-1 sticky top-24">
+                                    <FilterBar 
+                                        filters={filters}
+                                        onFilterChange={handleFilterChange}
+                                        maxPrice={1500000}
+                                        locations={LOCATIONS}
+                                        onReset={resetFilters}
+                                    />
+                                </div>
+                                <div className="lg:col-span-3">
+                                   {filteredProducts.length > 0 ? (
+                                        <ProductGrid products={filteredProducts} onViewDetails={setSelectedProduct} />
+                                   ) : (
+                                        <div className="text-center py-16">
+                                            <p className="text-gray-600 font-semibold text-lg">Oops! Tidak ada produk yang cocok.</p>
+                                            <p className="text-gray-500 mt-2">Coba ubah atau reset filter Anda.</p>
+                                        </div>
+                                   )}
+                                </div>
+                             </div>
+                          </div>
+                        </section>
+                    </>
+                );
+            case 'cart':
+            case 'profile':
+                return <CartPage items={cartItems} onUpdateQuantity={handleUpdateCartQuantity} onRemoveItem={handleRemoveFromCart} onCheckout={() => handleNavigate('checkout')} onStartShopping={() => handleNavigate('home')}/>;
+            case 'checkout':
+                return <CheckoutPage items={cartItems} onBackToHome={() => { setCartItems([]); handleNavigate('home'); addToast('success', 'Pesanan Anda berhasil dibuat!'); }} cartItemCount={cartItems.length} onLogout={handleLogout} isAuthenticated={isAuthenticated} onLoginClick={() => setAuthModalOpen(true)} onNavigate={handleNavigate} unreadMessageCount={unreadMessageCount} onChatClick={() => setChatOpen(true)} />;
+            case 'dashboard':
+                if (isAuthenticated && userRole === 'Seller') {
+                    return <SellerDashboardPage />;
+                }
+                handleNavigate('home'); // Redirect if not authorized
+                return null;
+            case 'admin-login':
+                return <AdminLoginPage onLogin={handleLoginSuccess} onBackToHome={() => handleNavigate('home')} />;
             default:
-                return <HomePage onProductClick={handleProductClick} onAddToCart={handleAddToCart} />;
+                return null;
         }
     };
-    
-    // Don't render Header/Footer on admin login page
-    const showLayout = activePage !== 'admin-login' && activePage !== 'checkout' && activePage !== 'dashboard';
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50">
-            {showLayout && (
-                <Header
+        <div className="flex flex-col min-h-screen bg-white">
+            {page !== 'admin-login' && (
+                 <Header
                     isAuthenticated={isAuthenticated}
                     onLoginClick={() => setAuthModalOpen(true)}
                     onSellClick={() => {
-                        if (isAuthenticated && (userRole === 'Seller' || userRole === 'Admin')) {
+                        if (isAuthenticated && userRole === 'Seller') {
                             setSellModalOpen(true);
                         } else {
-                            addToast('info', 'Fitur ini hanya untuk penjual. Silakan masuk sebagai penjual.');
+                            addToast('info', 'Anda harus masuk sebagai penjual untuk menambahkan produk.');
                             setAuthModalOpen(true);
                         }
                     }}
                     onNavigate={handleNavigate}
-                    activePage={activePage}
-                    onProfileClick={() => handleNavigate('profile')}
+                    activePage={page}
                     cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
                     onLogout={handleLogout}
                     unreadMessageCount={unreadMessageCount}
-                    onChatClick={() => setChatOpen(true)}
-                />
+                    onChatClick={() => setChatOpen(!isChatOpen)}
+                 />
             )}
-
-            <main className={`flex-grow ${showLayout ? '' : 'w-full'}`}>
+           
+            <main className="flex-grow">
                 {renderPage()}
             </main>
-
-            {showLayout && <Footer />}
-
-            {isSellModalOpen && <SellModal isOpen={isSellModalOpen} onClose={() => setSellModalOpen(false)} />}
             
-            {isProductDetailModalOpen && (
-                <ProductDetailModal
-                    product={selectedProduct}
-                    onClose={() => setProductDetailModalOpen(false)}
-                    onAddToCart={handleAddToCart}
-                    onStartChat={handleStartChat}
-                />
-            )}
-            
-            {isAuthModalOpen && (
-                <AuthPage 
-                    isOpen={isAuthModalOpen} 
-                    onClose={() => setAuthModalOpen(false)} 
-                    onLoginSuccess={handleLoginSuccess}
-                    onAdminLoginClick={() => {
-                        setAuthModalOpen(false);
-                        setActivePage('admin-login');
-                    }}
-                />
+            {page !== 'admin-login' && <Footer />}
+
+            {/* Mobile Filter Overlay */}
+            {isFilterOpen && (
+                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex flex-col justify-end lg:hidden animate-fade-in" onClick={() => setIsFilterOpen(false)}>
+                    <div 
+                        className="bg-gray-50 rounded-t-2xl shadow-lg max-h-[85vh] flex flex-col animate-slide-up"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="p-4 border-b flex justify-between items-center flex-shrink-0 bg-white rounded-t-2xl">
+                            <h2 className="text-xl font-bold text-gray-800">Filter</h2>
+                            <button onClick={() => setIsFilterOpen(false)} className="p-1 text-gray-400 hover:text-gray-600">
+                                <CloseIcon className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="overflow-y-auto">
+                            <FilterBar 
+                                filters={filters}
+                                onFilterChange={handleFilterChange}
+                                maxPrice={1500000}
+                                locations={LOCATIONS}
+                                onReset={resetFilters}
+                            />
+                        </div>
+                         <div className="p-4 border-t bg-white flex-shrink-0">
+                            <button onClick={() => setIsFilterOpen(false)} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-lg shadow-sm transition-colors">
+                                Lihat Hasil
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
-            {isAddProductModalOpen && (
-                <AddProductModal
-                    isOpen={isAddProductModalOpen}
-                    onClose={() => setAddProductModalOpen(false)}
-                    onSave={handleSaveProduct}
-                />
-            )}
-            
+            {/* Modals and Overlays */}
+            <SellModal isOpen={isSellModalOpen} onClose={() => setSellModalOpen(false)} />
+            <AuthPage isOpen={isAuthModalOpen} onClose={() => setAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} onAdminLoginClick={() => { setAuthModalOpen(false); handleNavigate('admin-login'); }} />
+            <ProductDetailModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onAddToCart={handleAddToCart} onStartChat={handleStartChat} />
             <ChatPanel
                 isOpen={isChatOpen}
                 onClose={() => setChatOpen(false)}
                 conversations={conversations}
                 activeConversationId={activeConversationId}
-                onSelectConversation={handleSelectConversation}
+                onSelectConversation={id => setActiveConversationId(id)}
                 onSendMessage={handleSendMessage}
                 onBackToList={() => setActiveConversationId(null)}
             />
-
-            <div
-                aria-live="assertive"
-                className="fixed inset-0 flex flex-col items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-[100]"
+             <div
+              aria-live="assertive"
+              className="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-50"
             >
-                <div className="w-full flex flex-col items-center space-y-4 sm:items-end">
-                    {toasts.map(toast => (
-                        <Toast key={toast.id} toast={toast} onDismiss={dismissToast} />
-                    ))}
-                </div>
+              <div className="w-full flex flex-col items-center space-y-4 sm:items-end">
+                {toasts.map((toast) => (
+                  <Toast key={toast.id} toast={toast} onDismiss={removeToast} />
+                ))}
+              </div>
             </div>
         </div>
     );

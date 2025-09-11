@@ -1,9 +1,12 @@
+
 import React from 'react';
 import { Product } from '../types';
-import { PencilIcon, TrashIcon, SearchIcon } from './icons/Icons';
+import { PencilIcon, TrashIcon } from './icons/Icons';
 
 interface ProductManagementTableProps {
   products: Product[];
+  onEdit: (product: Product) => void;
+  onDelete: (productId: number) => void;
 }
 
 const formatRupiah = (price: number): string => {
@@ -14,53 +17,71 @@ const formatRupiah = (price: number): string => {
   }).format(price);
 };
 
-const ProductManagementTable: React.FC<ProductManagementTableProps> = ({ products }) => {
+const ProductManagementTable: React.FC<ProductManagementTableProps> = ({ products, onEdit, onDelete }) => {
   if (products.length === 0) {
     return (
-      <div className="text-center py-16 bg-gray-50 rounded-lg border border-dashed">
-        <SearchIcon className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-4 text-lg font-semibold text-gray-800">Anda belum memiliki produk</h3>
-        <p className="mt-1 text-sm text-gray-500">Klik "Tambah Produk Baru" untuk mulai menjual.</p>
-      </div>
+        <div className="text-center py-10 border-t mt-4">
+            <p className="text-gray-500">Anda belum memiliki produk.</p>
+            <p className="text-sm text-gray-400 mt-1">Klik "Tambah Produk Baru" untuk memulai.</p>
+        </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white text-sm">
-        <thead className="bg-gray-100 text-left text-gray-600 font-semibold">
+        <thead className="bg-gray-50">
           <tr>
-            <th className="p-3">Produk</th>
-            <th className="p-3">Harga</th>
-            <th className="p-3">Penjualan</th>
-            <th className="p-3 text-center">Aksi</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Produk
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Harga
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Terjual
+            </th>
+             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Kategori
+            </th>
+            <th scope="col" className="relative px-6 py-3">
+              <span className="sr-only">Aksi</span>
+            </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200">
-          {products.map((product) => (
-            <tr key={product.id}>
-              <td className="p-3">
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="w-12 h-12 rounded-md object-cover"
-                  />
-                  <div>
-                    <p className="font-semibold text-gray-800">{product.name}</p>
-                    <p className="text-xs text-gray-500">{product.category}</p>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {products.map(product => (
+            <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-10 w-10">
+                    <img className="h-10 w-10 rounded-md object-cover" src={product.imageUrl} alt={product.name} />
+                  </div>
+                  <div className="ml-4">
+                    <div className="font-medium text-gray-900">{product.name}</div>
                   </div>
                 </div>
               </td>
-              <td className="p-3 font-medium text-gray-700">{formatRupiah(product.price)}</td>
-              <td className="p-3 font-medium text-gray-700">{product.sales || 0}</td>
-              <td className="p-3">
-                <div className="flex justify-center items-center space-x-2">
-                  <button className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-gray-100 transition-colors" title="Edit Produk">
-                    <PencilIcon className="w-5 h-5" />
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-gray-900 font-semibold">{formatRupiah(product.price)}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className="text-gray-700">
+                  {product.sales || 0}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  {product.category}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right font-medium">
+                 <div className="flex items-center justify-end space-x-3">
+                  <button onClick={() => onEdit(product)} className="text-primary hover:text-primary-dark p-1" aria-label={`Edit ${product.name}`}>
+                    <PencilIcon className="w-5 h-5"/>
                   </button>
-                  <button className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition-colors" title="Hapus Produk">
-                    <TrashIcon className="w-5 h-5" />
+                  <button onClick={() => onDelete(product.id)} className="text-gray-400 hover:text-red-600 p-1" aria-label={`Delete ${product.name}`}>
+                    <TrashIcon className="w-5 h-5"/>
                   </button>
                 </div>
               </td>

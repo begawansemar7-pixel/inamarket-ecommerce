@@ -49,7 +49,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange, 
   };
   
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md sticky top-24">
+    <div className="bg-white p-6 rounded-lg shadow-md lg:shadow-md">
       <div className="flex justify-between items-center pb-4 border-b">
         <h2 className="text-xl font-bold text-gray-800">Filter</h2>
         <button onClick={onReset} className="text-sm font-medium text-primary hover:text-primary-dark">

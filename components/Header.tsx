@@ -11,7 +11,6 @@ interface HeaderProps {
     onSellClick: () => void;
     onNavigate: (page: Page) => void;
     activePage: Page;
-    onProfileClick: () => void;
     cartItemCount: number;
     onLogout: () => void;
     unreadMessageCount: number;
@@ -24,7 +23,6 @@ const Header: React.FC<HeaderProps> = ({
     onSellClick, 
     onNavigate, 
     activePage, 
-    onProfileClick, 
     cartItemCount, 
     onLogout,
     unreadMessageCount,
@@ -104,8 +102,7 @@ const Header: React.FC<HeaderProps> = ({
                                 <ProfileDropdown
                                     isOpen={isProfileOpen}
                                     onClose={() => setProfileOpen(false)}
-                                    onProfileClick={() => onNavigate('profile')}
-                                    onNavigateToSellerDashboard={() => onNavigate('dashboard')}
+                                    onNavigate={onNavigate}
                                     onLogout={onLogout}
                                 />
                              </div>

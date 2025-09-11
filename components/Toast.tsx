@@ -1,14 +1,9 @@
 
+
 import React, { useEffect } from 'react';
 import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, CloseIcon } from './icons/Icons';
-
-export type ToastType = 'success' | 'error' | 'info';
-
-export interface ToastMessage {
-  id: string;
-  type: ToastType;
-  message: string;
-}
+// Fix: Import ToastMessage from the shared types file.
+import { ToastMessage } from '../types';
 
 interface ToastProps {
   toast: ToastMessage;

@@ -1,99 +1,91 @@
-import React from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+
+import React, { useState } from 'react';
 import { Product } from '../types';
-import { ShieldCheckIcon, PlusCircleIcon } from '../components/icons/Icons';
+import { PlusCircleIcon } from '../components/icons/Icons';
 import ProductManagementTable from '../components/ProductManagementTable';
+import AddProductModal from '../components/AddProductModal';
+import { PRODUCTS } from '../constants'; // Using constants for dummy data
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login';
+const SellerDashboardPage: React.FC = () => {
+  // Filter some products to simulate them belonging to the logged-in seller
+  const [sellerProducts, setSellerProducts] = useState<Product[]>(() => 
+    PRODUCTS.filter(p => p.seller === 'Kopi Kita' || p.seller === 'Batik Indah' || p.seller === 'Kulit Asli')
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-interface SellerDashboardPageProps {
-  onNavigate: (page: Page) => void;
-  cartItemCount: number;
-  onLogout: () => void;
-  isAuthenticated: boolean;
-  onLoginClick: () => void;
-  unreadMessageCount: number;
-  onChatClick: () => void;
-  sellerProducts: Product[];
-  onOpenAddProductModal: () => void;
-}
+  const handleOpenAddModal = () => {
+    setEditingProduct(null);
+    setIsModalOpen(true);
+  };
 
-const SellerDashboardPage: React.FC<SellerDashboardPageProps> = ({
-  onNavigate,
-  cartItemCount,
-  onLogout,
-  isAuthenticated,
-  onLoginClick,
-  unreadMessageCount,
-  onChatClick,
-  sellerProducts,
-  onOpenAddProductModal,
-}) => {
-  const verificationStatus = "verified"; // Dummy status
+  const handleOpenEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setIsModalOpen(true);
+  };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingProduct(null);
+  };
+
+  const handleSaveProduct = (productData: Product | Omit<Product, 'id' | 'reviews' | 'sellerVerification'>) => {
+    if ('id' in productData) {
+      // Editing existing product
+      setSellerProducts(prevProducts =>
+        prevProducts.map(p => (p.id === productData.id ? { ...p, ...productData } : p))
+      );
+    } else {
+      // Adding new product
+      const newProduct: Product = {
+        ...productData,
+        id: Date.now(), // Generate a simple unique ID
+        seller: "Toko Saya", // Assume current seller
+        sellerVerification: 'verified',
+        reviews: [],
+        imageUrl: `https://picsum.photos/seed/${Date.now()}/400/400`, // Placeholder image
+      };
+      setSellerProducts(prevProducts => [newProduct, ...prevProducts]);
+    }
+    handleCloseModal();
+  };
+
+  const handleDeleteProduct = (productId: number) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus produk ini?")) {
+      setSellerProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+    }
+  };
+  
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Header
-        isAuthenticated={isAuthenticated}
-        onLoginClick={onLoginClick}
-        onSellClick={() => {}} // or link to add product modal
-        onNavigate={onNavigate}
-        activePage={'dashboard'}
-        onProfileClick={() => {}}
-        cartItemCount={cartItemCount}
-        onLogout={onLogout}
-        unreadMessageCount={unreadMessageCount}
-        onChatClick={onChatClick}
-      />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Dasbor Penjual</h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Dasbor Penjual</h1>
+      
+      {/* Some stats cards could go here */}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Left Column for Stats/Info */}
-          <div className="md:col-span-1 space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Status Verifikasi</h2>
-              {verificationStatus === 'verified' ? (
-                <div className="flex items-center bg-green-100 text-green-800 p-4 rounded-lg">
-                  <ShieldCheckIcon className="w-8 h-8 mr-4" />
-                  <div>
-                    <p className="font-bold text-lg">Toko Terverifikasi</p>
-                    <p className="text-sm">Toko Anda telah diverifikasi oleh tim INAMarket.</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center bg-yellow-100 text-yellow-800 p-4 rounded-lg">
-                  {/* Icon for pending/not-verified */}
-                  <div>
-                    <p className="font-bold text-lg">Verifikasi Tertunda</p>
-                    <p className="text-sm">Tim kami sedang meninjau dokumen Anda.</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            {/* Other stats can go here */}
-          </div>
-
-          {/* Right Column for Product Management */}
-          <div className="md:col-span-2">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Manajemen Produk</h2>
-                <button
-                  onClick={onOpenAddProductModal}
-                  className="flex items-center bg-primary hover:bg-primary-dark text-white font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm"
-                >
-                  <PlusCircleIcon className="w-5 h-5 mr-2" />
-                  Tambah Produk Baru
-                </button>
-              </div>
-              <ProductManagementTable products={sellerProducts} />
-            </div>
-          </div>
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
+          <h2 className="text-xl font-bold text-gray-800">Produk Saya ({sellerProducts.length})</h2>
+          <button 
+            onClick={handleOpenAddModal} 
+            className="flex items-center justify-center bg-primary hover:bg-primary-dark text-white font-semibold px-4 py-2 rounded-md transition-colors shadow-sm"
+          >
+            <PlusCircleIcon className="w-5 h-5 mr-2" />
+            Tambah Produk Baru
+          </button>
         </div>
-      </main>
-      <Footer />
+        <ProductManagementTable
+          products={sellerProducts}
+          onEdit={handleOpenEditModal}
+          onDelete={handleDeleteProduct}
+        />
+      </div>
+
+      <AddProductModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveProduct}
+        productToEdit={editingProduct}
+      />
     </div>
   );
 };

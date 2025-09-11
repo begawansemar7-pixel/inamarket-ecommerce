@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ShoppingCartIcon, DocumentTextIcon, ChevronRightIcon, TrashIcon } from '../components/icons/Icons';
 import { Product, CartItem as CartItemType } from '../types';
@@ -74,9 +75,11 @@ interface CartPageProps {
     items: CartItemType[];
     onUpdateQuantity: (id: number, newQuantity: number) => void;
     onRemoveItem: (id: number) => void;
+    onCheckout: () => void;
+    onStartShopping: () => void;
 }
 
-const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveItem }) => {
+const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveItem, onCheckout, onStartShopping }) => {
   // Dummy data for history
   const transactionHistory = [
       {...PRODUCTS[0], date: '1 Agu 2024', status: 'Selesai' as const},
@@ -108,7 +111,7 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
                                 <span className="text-gray-600">Subtotal:</span>
                                 <p className="text-2xl font-bold text-gray-800">{formatRupiah(subtotal)}</p>
                             </div>
-                            <button className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-md text-lg transition-colors">
+                            <button onClick={onCheckout} className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-md text-lg transition-colors">
                                 Checkout
                             </button>
                         </div>
@@ -116,7 +119,7 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
                 ) : (
                     <div className="text-center py-10">
                         <p className="text-gray-500">Keranjang belanja Anda masih kosong.</p>
-                        <button className="mt-4 text-primary hover:text-primary-dark font-semibold">
+                        <button onClick={onStartShopping} className="mt-4 text-primary hover:text-primary-dark font-semibold">
                             Mulai Belanja
                         </button>
                     </div>

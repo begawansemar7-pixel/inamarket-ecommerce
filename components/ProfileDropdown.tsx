@@ -1,26 +1,28 @@
+
 import React from 'react';
 import { UserCircleIcon, BuildingStorefrontIcon, ArrowLeftOnRectangleIcon } from './icons/Icons';
+
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login';
 
 interface ProfileDropdownProps {
   isOpen: boolean;
   onClose: () => void;
-  onProfileClick: () => void;
-  onNavigateToSellerDashboard: () => void;
+  onNavigate: (page: Page) => void;
   onLogout: () => void;
 }
 
-const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isOpen, onClose, onProfileClick, onNavigateToSellerDashboard, onLogout }) => {
+const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isOpen, onClose, onNavigate, onLogout }) => {
   if (!isOpen) {
     return null;
   }
 
   const handleProfileClick = () => {
-    onProfileClick();
+    onNavigate('profile');
     onClose();
   };
 
   const handleSellerDashboardClick = () => {
-    onNavigateToSellerDashboard();
+    onNavigate('dashboard');
     onClose();
   }
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Address, ShippingOption, CartItem } from '../types';
 import Header from '../components/Header';
@@ -89,13 +88,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Fix: Removed non-existent 'onProfileClick' prop from Header component. */}
       <Header 
         isAuthenticated={isAuthenticated}
         onLoginClick={onLoginClick}
         onSellClick={() => {}} 
         onNavigate={onNavigate} 
         activePage={'checkout'} 
-        onProfileClick={() => {}} 
         cartItemCount={cartItemCount} 
         onLogout={onLogout} 
         unreadMessageCount={unreadMessageCount}
