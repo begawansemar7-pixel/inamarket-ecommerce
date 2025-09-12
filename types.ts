@@ -22,6 +22,8 @@ export interface Product {
   location: string;
   reviews: Review[];
   sales?: number; // Optional sales count
+  stock?: number; // Optional stock count
+  discount?: number; // Optional discount percentage
 }
 
 export interface CartItem extends Product {
@@ -33,7 +35,7 @@ export interface Address {
   phone: string;
   street: string;
   city: string;
-  province: string;
+  province:string;
   postalCode: string;
 }
 

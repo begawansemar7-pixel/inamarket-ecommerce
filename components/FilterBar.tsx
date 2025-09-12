@@ -12,6 +12,8 @@ interface FilterSidebarProps {
   maxPrice: number;
   locations: string[];
   onReset: () => void;
+  availableLocations: string[];
+  showPriceFilter: boolean;
 }
 
 const formatRupiah = (price: number): string => {
@@ -32,7 +34,15 @@ const FilterPill: React.FC<{ label: string; onRemove: () => void }> = ({ label, 
 );
 
 
-const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange, maxPrice, locations, onReset }) => {
+const FilterSidebar: React.FC<FilterSidebarProps> = ({
+    filters,
+    onFilterChange,
+    maxPrice,
+    locations,
+    onReset,
+    availableLocations,
+    showPriceFilter
+}) => {
   const isCategoryActive = filters.category !== 'all';
   const isLocationActive = filters.location !== 'all';
   const isPriceActive = filters.price[0] > 0 || filters.price[1] < maxPrice;
@@ -47,6 +57,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange, 
       const newMax = Math.max(Number(e.target.value), filters.price[0] + 1000); // Prevent crossing with a gap
       onFilterChange('price', [filters.price[0], newMax]);
   };
+
+  const showLocationFilter = availableLocations.length > 1;
   
   return (
     <div className="bg-white p-6 rounded-lg shadow-md lg:shadow-md">
@@ -75,67 +87,77 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange, 
       )}
 
       <div className="mt-4">
-        <FilterAccordion title="Harga" defaultOpen={true}>
-            <div className="pt-4 px-1">
-                <div className="relative h-5">
-                    {/* Track */}
-                    <div className="absolute w-full h-1 bg-gray-200 rounded-full top-1/2 -translate-y-1/2" />
-                    {/* Selected Range */}
-                    <div
-                        className="absolute h-1 bg-primary rounded-full top-1/2 -translate-y-1/2"
-                        style={{
-                            left: `${(filters.price[0] / maxPrice) * 100}%`,
-                            right: `${100 - (filters.price[1] / maxPrice) * 100}%`,
-                        }}
-                    />
-                    
-                    {/* Min Slider */}
-                    <input
-                        type="range"
-                        min="0"
-                        max={maxPrice}
-                        value={filters.price[0]}
-                        onChange={handleMinPriceChange}
-                        className="absolute w-full h-5 appearance-none bg-transparent pointer-events-none range-slider-thumb"
-                        aria-label="Minimum price"
-                    />
-                    {/* Max Slider */}
-                    <input
-                        type="range"
-                        min="0"
-                        max={maxPrice}
-                        value={filters.price[1]}
-                        onChange={handleMaxPriceChange}
-                        className="absolute w-full h-5 appearance-none bg-transparent pointer-events-none range-slider-thumb"
-                        aria-label="Maximum price"
-                    />
-                </div>
-                <div className="flex justify-between text-sm text-gray-600 mt-3">
-                <span>{formatRupiah(filters.price[0])}</span>
-                <span>{formatRupiah(filters.price[1])}</span>
-                </div>
-          </div>
-        </FilterAccordion>
+        {showPriceFilter && (
+            <FilterAccordion title="Harga" defaultOpen={true} isActive={isPriceActive}>
+                <div className="pt-4 px-1">
+                    <div className="relative h-5">
+                        {/* Track */}
+                        <div className="absolute w-full h-1 bg-gray-200 rounded-full top-1/2 -translate-y-1/2" />
+                        {/* Selected Range */}
+                        <div
+                            className="absolute h-1 bg-primary rounded-full top-1/2 -translate-y-1/2"
+                            style={{
+                                left: `${(filters.price[0] / maxPrice) * 100}%`,
+                                right: `${100 - (filters.price[1] / maxPrice) * 100}%`,
+                            }}
+                        />
+                        
+                        {/* Min Slider */}
+                        <input
+                            type="range"
+                            min="0"
+                            max={maxPrice}
+                            value={filters.price[0]}
+                            onChange={handleMinPriceChange}
+                            className="absolute w-full h-5 appearance-none bg-transparent pointer-events-none range-slider-thumb"
+                            aria-label="Minimum price"
+                        />
+                        {/* Max Slider */}
+                        <input
+                            type="range"
+                            min="0"
+                            max={maxPrice}
+                            value={filters.price[1]}
+                            onChange={handleMaxPriceChange}
+                            className="absolute w-full h-5 appearance-none bg-transparent pointer-events-none range-slider-thumb"
+                            aria-label="Maximum price"
+                        />
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-600 mt-3">
+                    <span>{formatRupiah(filters.price[0])}</span>
+                    <span>{formatRupiah(filters.price[1])}</span>
+                    </div>
+              </div>
+            </FilterAccordion>
+        )}
 
-        <FilterAccordion title="Lokasi" defaultOpen={true}>
-          <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-            <button
-                onClick={() => onFilterChange('location', 'all')}
-                className={`w-full text-left p-2 rounded-md text-sm transition-colors ${filters.location === 'all' ? 'font-bold text-primary bg-primary-light/10' : 'text-gray-700 hover:bg-gray-100'}`}
-            >
-                Semua Lokasi
-            </button>
-            {locations.map((location) => (
-              <button
-                key={location}
-                onClick={() => onFilterChange('location', location)}
-                className={`w-full text-left p-2 rounded-md text-sm transition-colors ${filters.location === location ? 'font-bold text-primary bg-primary-light/10' : 'text-gray-700 hover:bg-gray-100'}`}
-              >
-                {location}
-              </button>
-            ))}
-          </div>
-        </FilterAccordion>
+        {showLocationFilter && (
+            <FilterAccordion title="Lokasi" defaultOpen={true} isActive={isLocationActive}>
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                <button
+                    onClick={() => onFilterChange('location', 'all')}
+                    className={`w-full text-left p-2 rounded-md text-sm transition-colors ${filters.location === 'all' ? 'font-bold text-primary bg-primary-light/10' : 'text-gray-700 hover:bg-gray-100'}`}
+                >
+                    Semua Lokasi
+                </button>
+                {locations.map((location) => (
+                  <button
+                    key={location}
+                    onClick={() => onFilterChange('location', location)}
+                    className={`w-full text-left p-2 rounded-md text-sm transition-colors ${filters.location === location ? 'font-bold text-primary bg-primary-light/10' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    {location}
+                  </button>
+                ))}
+              </div>
+            </FilterAccordion>
+        )}
+        
+        {!showPriceFilter && !showLocationFilter && (
+            <div className="pt-4 text-center text-sm text-gray-500">
+                Tidak ada filter lain yang tersedia untuk pilihan Anda saat ini.
+            </div>
+        )}
       </div>
     </div>
   );

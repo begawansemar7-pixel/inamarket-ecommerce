@@ -2,7 +2,8 @@
 import React from 'react';
 import { UserCircleIcon, BuildingStorefrontIcon, ArrowLeftOnRectangleIcon } from './icons/Icons';
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login';
+// Fix: Expanded Page type to include all possible navigation routes.
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
 
 interface ProfileDropdownProps {
   isOpen: boolean;

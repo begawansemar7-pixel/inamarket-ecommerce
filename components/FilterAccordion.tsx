@@ -5,9 +5,10 @@ interface FilterAccordionProps {
   title: string;
   children: ReactNode;
   defaultOpen?: boolean;
+  isActive?: boolean;
 }
 
-const FilterAccordion: React.FC<FilterAccordionProps> = ({ title, children, defaultOpen = false }) => {
+const FilterAccordion: React.FC<FilterAccordionProps> = ({ title, children, defaultOpen = false, isActive = false }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
@@ -17,7 +18,12 @@ const FilterAccordion: React.FC<FilterAccordionProps> = ({ title, children, defa
         className="w-full flex justify-between items-center py-4 text-left"
         aria-expanded={isOpen}
       >
-        <h3 className="text-md font-semibold text-gray-800">{title}</h3>
+        <div className="flex items-center">
+          <h3 className="text-md font-semibold text-gray-800">{title}</h3>
+          {isActive && (
+            <span className="w-2 h-2 bg-primary rounded-full ml-2 animate-scale-in"></span>
+          )}
+        </div>
         <ChevronDownIcon
           className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isOpen ? 'transform rotate-180' : ''}`}
         />

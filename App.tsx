@@ -11,15 +11,24 @@ import ProductDetailModal from './components/ProductDetailModal';
 import Toast from './components/Toast';
 import ChatPanel from './components/chat/ChatPanel';
 import { Product, CartItem, ToastMessage, Conversation } from './types';
-import { PRODUCTS, LOCATIONS } from './constants';
+import { PRODUCTS, LOCATIONS, ALL_CATEGORIES } from './constants';
 import Hero from './components/Hero';
 import CategoryGrid from './components/CategoryGrid';
 import ProductGrid from './components/ProductGrid';
 import FilterBar from './components/FilterBar';
 import PromoBanner from './components/PromoBanner';
+import BottomCarousel from './components/BottomCarousel';
+import CollapsibleCategorySection from './components/CollapsibleCategorySection';
 import { AdjustmentsHorizontalIcon, CloseIcon } from './components/icons/Icons';
+import AboutPage from './pages/AboutPage';
+import CareersPage from './pages/CareersPage';
+import BlogPage from './pages/BlogPage';
+import ContactPage from './pages/ContactPage';
+import HelpCenterPage from './pages/HelpCenterPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login';
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
 type UserRole = 'Buyer' | 'Seller' | 'Admin';
 
 const App: React.FC = () => {
@@ -56,6 +65,10 @@ const App: React.FC = () => {
         location: 'all',
     });
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    
+    // Recommendation state
+    const [viewedCategories, setViewedCategories] = useState<Record<string, number>>({});
+    const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
 
     // Memoized list for featured products
     const featuredProducts = useMemo(() => {
@@ -75,6 +88,37 @@ const App: React.FC = () => {
         const isPriceActive = filters.price[0] > 0 || filters.price[1] < 1500000;
         return [isCategoryActive, isLocationActive, isPriceActive].filter(Boolean).length;
     }, [filters]);
+
+    // Calculate products relevant for each filter, excluding the filter itself
+    const productsForPriceFilter = useMemo(() => {
+        let tempProducts = [...allProducts];
+        if (filters.category !== 'all') {
+            tempProducts = tempProducts.filter(p => p.category === filters.category);
+        }
+        if (filters.location !== 'all') {
+            tempProducts = tempProducts.filter(p => p.location === filters.location);
+        }
+        return tempProducts;
+    }, [filters.category, filters.location, allProducts]);
+    
+    const showPriceFilter = useMemo(() => {
+        if (productsForPriceFilter.length === 0) return false;
+        const uniquePrices = new Set(productsForPriceFilter.map(p => p.price));
+        return uniquePrices.size > 1; // Only show if there's a range of prices to filter
+    }, [productsForPriceFilter]);
+
+    const productsForLocationFilter = useMemo(() => {
+        let tempProducts = [...allProducts];
+        if (filters.category !== 'all') {
+            tempProducts = tempProducts.filter(p => p.category === filters.category);
+        }
+        tempProducts = tempProducts.filter(p => p.price >= filters.price[0] && p.price <= filters.price[1]);
+        return tempProducts;
+    }, [filters.category, filters.price, allProducts]);
+
+    const availableLocations = useMemo(() => {
+        return [...new Set(productsForLocationFilter.map(p => p.location))];
+    }, [productsForLocationFilter]);
 
     // Effect to update unread message count
     useEffect(() => {
@@ -97,6 +141,37 @@ const App: React.FC = () => {
         setFilteredProducts(tempProducts);
     }, [filters, allProducts]);
 
+    // Recommendation logic
+    useEffect(() => {
+        const categoryEntries = Object.entries(viewedCategories);
+        if (categoryEntries.length === 0) {
+            setRecommendedProducts([]);
+            return;
+        }
+
+        // Find the most viewed category
+        const [mostViewedCategory] = categoryEntries.sort(([, a], [, b]) => b - a)[0];
+
+        // Get products from this category, excluding those already in other sections, shuffle, and take a few
+        const recommendations = allProducts
+            .filter(p => p.category === mostViewedCategory)
+            .filter(p => !featuredProducts.some(fp => fp.id === p.id))
+            .filter(p => !promoProducts.some(pp => pp.id === p.id))
+            .sort(() => 0.5 - Math.random()) // Shuffle
+            .slice(0, 4); // Take up to 4 recommendations
+
+        // Fallback in case all products in the top category are already displayed
+        if (recommendations.length > 0) {
+            setRecommendedProducts(recommendations);
+        } else {
+            const fallbackRecommendations = allProducts
+                .filter(p => p.category === mostViewedCategory)
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 4);
+            setRecommendedProducts(fallbackRecommendations);
+        }
+    }, [viewedCategories, allProducts, featuredProducts, promoProducts]);
+
     const handleFilterChange = (filterName: keyof typeof filters, value: any) => {
         setFilters(prev => ({...prev, [filterName]: value}));
     };
@@ -104,6 +179,11 @@ const App: React.FC = () => {
     const handleCategorySelect = (categoryName: string) => {
         handleFilterChange('category', categoryName);
         document.getElementById('product-section')?.scrollIntoView({ behavior: 'smooth' });
+        // Update browsing history for recommendations
+        setViewedCategories(prev => ({
+            ...prev,
+            [categoryName]: (prev[categoryName] || 0) + 1,
+        }));
     };
 
     const resetFilters = () => {
@@ -222,12 +302,9 @@ const App: React.FC = () => {
                 return (
                     <>
                         <Hero />
-                        <section className="py-8 bg-white">
-                          <div className="container mx-auto px-4">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-6">Kategori Pilihan</h2>
-                            <CategoryGrid onCategorySelect={handleCategorySelect} />
-                          </div>
-                        </section>
+                        <CollapsibleCategorySection title="Kategori Pilihan" bgColorClass="bg-white" defaultOpen={true}>
+                            <CategoryGrid categories={ALL_CATEGORIES} onCategorySelect={handleCategorySelect} />
+                        </CollapsibleCategorySection>
                         
                         {promoProducts.length > 0 && (
                             <section className="py-8 bg-gray-50">
@@ -244,9 +321,18 @@ const App: React.FC = () => {
                           </div>
                         </section>
                         
+                        {recommendedProducts.length > 0 && (
+                            <section className="py-8 bg-gray-50">
+                              <div className="container mx-auto px-4">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Rekomendasi untuk Anda</h2>
+                                <ProductGrid products={recommendedProducts} onViewDetails={setSelectedProduct} />
+                              </div>
+                            </section>
+                        )}
+
                         <PromoBanner />
 
-                        <section id="product-section" className="py-8 bg-gray-50">
+                        <section id="product-section" className="py-8 bg-white">
                           <div className="container mx-auto px-4">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">Jelajahi Produk UMKM</h2>
                             
@@ -276,6 +362,8 @@ const App: React.FC = () => {
                                         maxPrice={1500000}
                                         locations={LOCATIONS}
                                         onReset={resetFilters}
+                                        availableLocations={availableLocations}
+                                        showPriceFilter={showPriceFilter}
                                     />
                                 </div>
                                 <div className="lg:col-span-3">
@@ -291,6 +379,7 @@ const App: React.FC = () => {
                              </div>
                           </div>
                         </section>
+                        <BottomCarousel />
                     </>
                 );
             case 'cart':
@@ -306,6 +395,20 @@ const App: React.FC = () => {
                 return null;
             case 'admin-login':
                 return <AdminLoginPage onLogin={handleLoginSuccess} onBackToHome={() => handleNavigate('home')} />;
+            case 'about':
+                return <AboutPage />;
+            case 'careers':
+                return <CareersPage />;
+            case 'blog':
+                return <BlogPage />;
+            case 'contact':
+                return <ContactPage addToast={addToast} />;
+            case 'help-center':
+                return <HelpCenterPage />;
+            case 'privacy-policy':
+                return <PrivacyPolicyPage />;
+            case 'terms':
+                return <TermsAndConditionsPage />;
             default:
                 return null;
         }
@@ -338,7 +441,7 @@ const App: React.FC = () => {
                 {renderPage()}
             </main>
             
-            {page !== 'admin-login' && <Footer />}
+            {page !== 'admin-login' && <Footer onNavigate={handleNavigate} />}
 
             {/* Mobile Filter Overlay */}
             {isFilterOpen && (
@@ -360,6 +463,8 @@ const App: React.FC = () => {
                                 maxPrice={1500000}
                                 locations={LOCATIONS}
                                 onReset={resetFilters}
+                                availableLocations={availableLocations}
+                                showPriceFilter={showPriceFilter}
                             />
                         </div>
                          <div className="p-4 border-t bg-white flex-shrink-0">

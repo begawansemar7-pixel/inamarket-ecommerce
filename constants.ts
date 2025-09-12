@@ -9,7 +9,16 @@ import {
     ElectronicsIcon,
     HandicraftIcon,
     AutomotiveIcon,
-    ToysAndHobbiesIcon
+    ToysAndHobbiesIcon,
+    SewingMachineIcon,
+    WrenchIcon,
+    PenToolIcon,
+    CameraIcon,
+    FoodTrayIcon,
+    PartyPopperIcon,
+    CostumeIcon,
+    SpeakerWaveIcon,
+    CarIcon
 } from './components/icons/Icons';
 
 export const CATEGORIES = [
@@ -36,6 +45,29 @@ export const CATEGORIES_WITH_ICONS = [
     { name: 'Mainan & Hobi', icon: ToysAndHobbiesIcon },
 ];
 
+export const SERVICE_CATEGORIES_WITH_ICONS = [
+    { name: 'Jasa Jahit', icon: SewingMachineIcon },
+    { name: 'Servis Elektronik', icon: WrenchIcon },
+    { name: 'Desain Grafis', icon: PenToolIcon },
+    { name: 'Jasa Fotografi', icon: CameraIcon },
+    { name: 'Katering', icon: FoodTrayIcon },
+];
+
+export const RENTAL_CATEGORIES_WITH_ICONS = [
+    { name: 'Sewa Alat Pesta', icon: PartyPopperIcon },
+    { name: 'Sewa Kamera', icon: CameraIcon },
+    { name: 'Sewa Kostum', icon: CostumeIcon },
+    { name: 'Sewa Sound System', icon: SpeakerWaveIcon },
+    { name: 'Sewa Mobil', icon: CarIcon },
+];
+
+export const ALL_CATEGORIES = [
+    ...CATEGORIES_WITH_ICONS,
+    ...SERVICE_CATEGORIES_WITH_ICONS,
+    ...RENTAL_CATEGORIES_WITH_ICONS,
+];
+
+
 export const LOCATIONS = ['Jakarta', 'Bandung', 'Surabaya', 'Yogyakarta', 'Bali', 'Medan'];
 
 export const PRODUCTS: Product[] = [
@@ -53,7 +85,9 @@ export const PRODUCTS: Product[] = [
             { id: 1, user: 'Budi', date: '20 Jul 2024', rating: 5, comment: 'Kopinya mantap, aromanya wangi banget!' },
             { id: 2, user: 'Siti', date: '18 Jul 2024', rating: 4, comment: 'Rasanya pas, tidak terlalu asam.' },
         ],
-        sales: 120
+        sales: 120,
+        stock: 55,
+        discount: 0
     },
     {
         id: 2,
@@ -68,7 +102,9 @@ export const PRODUCTS: Product[] = [
         reviews: [
             { id: 3, user: 'Lina', date: '15 Jul 2024', rating: 5, comment: 'Warnanya cerah dan kainnya adem. Suka banget!' }
         ],
-        sales: 30
+        sales: 30,
+        stock: 20,
+        discount: 10
     },
     {
         id: 3,
@@ -84,7 +120,9 @@ export const PRODUCTS: Product[] = [
         reviews: [
             { id: 4, user: 'Joko', date: '22 Jul 2024', rating: 5, comment: 'Madunya asli, kental dan berkhasiat.' }
         ],
-        sales: 85
+        sales: 85,
+        stock: 100,
+        discount: 0
     },
     {
         id: 4,
@@ -97,7 +135,9 @@ export const PRODUCTS: Product[] = [
         sellerVerification: 'verified',
         location: 'Yogyakarta',
         reviews: [],
-        sales: 15
+        sales: 15,
+        stock: 25,
+        discount: 0
     },
     {
         id: 5,
@@ -113,7 +153,9 @@ export const PRODUCTS: Product[] = [
         reviews: [
             { id: 5, user: 'Rina', date: '19 Jul 2024', rating: 4, comment: 'Desainnya unik, kualitas suaranya juga oke untuk harganya.' }
         ],
-        sales: 45
+        sales: 45,
+        stock: 8,
+        discount: 15
     },
     {
         id: 6,
@@ -128,7 +170,9 @@ export const PRODUCTS: Product[] = [
         reviews: [
             { id: 6, user: 'Agus', date: '25 Jul 2024', rating: 5, comment: 'Kualitas kulitnya premium, worth it!' }
         ],
-        sales: 25
+        sales: 25,
+        stock: 12,
+        discount: 0
     },
     {
         id: 7,
@@ -141,7 +185,9 @@ export const PRODUCTS: Product[] = [
         sellerVerification: 'unverified',
         location: 'Bandung',
         reviews: [],
-        sales: 50
+        sales: 50,
+        stock: 40,
+        discount: 0
     },
     {
         id: 8,
@@ -157,7 +203,9 @@ export const PRODUCTS: Product[] = [
             { id: 7, user: 'Dewi', date: '21 Jul 2024', rating: 5, comment: 'Pedasnya nampol, bikin nagih!' },
             { id: 8, user: 'Eko', date: '20 Jul 2024', rating: 5, comment: 'Sambal roa terbaik yang pernah saya coba.' }
         ],
-        sales: 250
+        sales: 250,
+        stock: 200,
+        discount: 5
     },
     {
         id: 9,
@@ -170,7 +218,9 @@ export const PRODUCTS: Product[] = [
         sellerVerification: 'verified',
         location: 'Bali',
         reviews: [],
-        sales: 90
+        sales: 90,
+        stock: 75,
+        discount: 0
     },
     {
         id: 10,
@@ -185,7 +235,9 @@ export const PRODUCTS: Product[] = [
         reviews: [
              { id: 9, user: 'Maria', date: '10 Jul 2024', rating: 5, comment: 'Kainnya sangat indah, sebuah karya seni.' }
         ],
-        sales: 10
+        sales: 10,
+        stock: 5,
+        discount: 0
     },
     {
         id: 11,
@@ -198,7 +250,9 @@ export const PRODUCTS: Product[] = [
         sellerVerification: 'verified',
         location: 'Bandung',
         reviews: [],
-        sales: 150
+        sales: 150,
+        stock: 300,
+        discount: 20
     },
     {
         id: 12,
@@ -214,7 +268,9 @@ export const PRODUCTS: Product[] = [
         reviews: [
             { id: 10, user: 'Ibu Ani', date: '23 Jul 2024', rating: 4, comment: 'Anak saya suka, kayunya halus dan aman.' }
         ],
-        sales: 60
+        sales: 60,
+        stock: 30,
+        discount: 0
     },
 ];
 
@@ -223,4 +279,28 @@ export const SHIPPING_OPTIONS: ShippingOption[] = [
   { id: 'standard', name: 'Reguler', price: 10000, estimatedDelivery: '2-4 hari' },
   { id: 'express', name: 'Express', price: 25000, estimatedDelivery: '1-2 hari' },
   { id: 'sameday', name: 'Same Day', price: 45000, estimatedDelivery: 'Hari ini' },
+];
+
+export const BOTTOM_CAROUSEL_SLIDES = [
+  {
+    id: 1,
+    imageUrl: "https://picsum.photos/seed/bottomcarousel1/1600/400",
+    title: "Jadilah Penjual di INAMarket",
+    subtitle: "Buka toko Anda dan jangkau jutaan pelanggan di seluruh Indonesia. Gratis!",
+    buttonText: "Mulai Berjualan",
+  },
+  {
+    id: 2,
+    imageUrl: "https://picsum.photos/seed/bottomcarousel2/1600/400",
+    title: "Pengiriman Cepat & Terpercaya",
+    subtitle: "Kami bekerja sama dengan layanan logistik terbaik untuk mengantar pesanan Anda.",
+    buttonText: "Lacak Pesanan",
+  },
+  {
+    id: 3,
+    imageUrl: "https://picsum.photos/seed/bottomcarousel3/1600/400",
+    title: "Butuh Bantuan? Kami Siap Melayani",
+    subtitle: "Tim customer service kami siap membantu Anda 24/7.",
+    buttonText: "Hubungi Kami",
+  }
 ];

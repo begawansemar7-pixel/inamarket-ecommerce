@@ -1,7 +1,21 @@
-
 import React from 'react';
 
-const Footer: React.FC = () => {
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+
+interface FooterProps {
+    onNavigate: (page: Page) => void;
+}
+
+const FooterLink: React.FC<{ page: Page; onNavigate: (page: Page) => void; children: React.ReactNode }> = ({ page, onNavigate, children }) => (
+    <li>
+        <button onClick={() => onNavigate(page)} className="hover:text-white transition-colors duration-200">
+            {children}
+        </button>
+    </li>
+);
+
+
+const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
     <footer className="bg-gray-800 text-white mt-12">
       <div className="container mx-auto px-4 py-10">
@@ -13,18 +27,18 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="font-bold text-lg mb-4">Jelajahi</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
-              <li><a href="#" className="hover:text-white">Tentang Kami</a></li>
-              <li><a href="#" className="hover:text-white">Karir</a></li>
-              <li><a href="#" className="hover:text-white">Blog</a></li>
-              <li><a href="#" className="hover:text-white">Kontak</a></li>
+                <FooterLink page="about" onNavigate={onNavigate}>Tentang Kami</FooterLink>
+                <FooterLink page="careers" onNavigate={onNavigate}>Karir</FooterLink>
+                <FooterLink page="blog" onNavigate={onNavigate}>Blog</FooterLink>
+                <FooterLink page="contact" onNavigate={onNavigate}>Kontak</FooterLink>
             </ul>
           </div>
           <div>
             <h3 className="font-bold text-lg mb-4">Bantuan</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
-              <li><a href="#" className="hover:text-white">Pusat Bantuan</a></li>
-              <li><a href="#" className="hover:text-white">Kebijakan Privasi</a></li>
-              <li><a href="#" className="hover:text-white">Syarat & Ketentuan</a></li>
+                <FooterLink page="help-center" onNavigate={onNavigate}>Pusat Bantuan</FooterLink>
+                <FooterLink page="privacy-policy" onNavigate={onNavigate}>Kebijakan Privasi</FooterLink>
+                <FooterLink page="terms" onNavigate={onNavigate}>Syarat & Ketentuan</FooterLink>
             </ul>
           </div>
           <div>

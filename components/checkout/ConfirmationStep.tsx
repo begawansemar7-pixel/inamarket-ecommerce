@@ -48,7 +48,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
     if (paymentMethod === 'bank_transfer') {
       return (
         <div>
-            <h3 className="font-semibold text-lg text-gray-800">Instruksi Pembayaran</h3>
+            <h3 className="font-semibold text-lg text-gray-800">Instruksi Pembayaran Bank Transfer</h3>
             <p className="text-sm text-gray-500 mb-3">Selesaikan pembayaran Anda melalui transfer ke Virtual Account berikut:</p>
             <div className="bg-gray-100 p-4 rounded-lg space-y-2">
                 <div className="flex justify-between text-sm"><span>Bank Tujuan:</span> <span className="font-bold">BCA Virtual Account</span></div>
@@ -64,7 +64,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         case 'awaiting_payment':
           return (
              <div>
-                <h3 className="font-semibold text-lg text-gray-800">Pembayaran QRIS</h3>
+                <h3 className="font-semibold text-lg text-gray-800">Instruksi Pembayaran QRIS</h3>
                 <p className="text-sm text-gray-500 mb-3">Pindai kode QR di bawah ini dengan aplikasi e-wallet Anda.</p>
                 <div className="bg-gray-100 p-4 rounded-lg flex flex-col items-center">
                     <img 
@@ -73,7 +73,6 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
                         className="w-48 h-48 rounded-md" 
                     />
                     <p className="font-bold mt-2">Total Bayar: {formatRupiah(total)}</p>
-                    <p className="text-xs text-gray-500">ID Pesanan: {orderId}</p>
                 </div>
                 <button
                     onClick={handleConfirmQrisPayment}
@@ -110,6 +109,9 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         <p className="text-gray-600 mt-2">
             {isPaymentComplete ? 'Terima kasih! Pesanan Anda telah kami konfirmasi.' : 'Segera selesaikan pembayaran Anda untuk melanjutkan.'}
         </p>
+         <div className="mt-4 bg-gray-100 inline-block px-4 py-2 rounded-lg border">
+            <p className="text-sm text-gray-600">ID Pesanan: <span className="font-bold text-gray-800">{orderId}</span></p>
+        </div>
       </div>
       
       <div className="text-left bg-white border border-gray-200 rounded-lg p-6 space-y-6">

@@ -9,8 +9,8 @@ import PaymentStep from '../components/checkout/PaymentStep';
 import ConfirmationStep from '../components/checkout/ConfirmationStep';
 import OrderSummary from '../components/checkout/OrderSummary';
 
-type CheckoutStep = 'address' | 'shipping' | 'payment' | 'confirmation';
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login';
+// Fix: Expanded Page type to include all possible navigation routes.
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
 
 interface CheckoutPageProps {
   items: CartItem[];
@@ -23,6 +23,9 @@ interface CheckoutPageProps {
   unreadMessageCount: number;
   onChatClick: () => void;
 }
+
+// Fix: Defined CheckoutStep type which was causing a compilation error.
+type CheckoutStep = 'address' | 'shipping' | 'payment' | 'confirmation';
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ 
     items, 
@@ -88,7 +91,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Fix: Removed non-existent 'onProfileClick' prop from Header component. */}
       <Header 
         isAuthenticated={isAuthenticated}
         onLoginClick={onLoginClick}
@@ -119,7 +121,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </div>
         </div>
       </main>
-      <Footer />
+      {/* Fix: Passed the required 'onNavigate' prop to the Footer component. */}
+      <Footer onNavigate={onNavigate} />
     </div>
   );
 };

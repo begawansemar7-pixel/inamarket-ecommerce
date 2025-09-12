@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Product } from '../types';
 import { PencilIcon, TrashIcon } from './icons/Icons';
@@ -39,7 +38,13 @@ const ProductManagementTable: React.FC<ProductManagementTableProps> = ({ product
               Harga
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Sisa Stok
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Terjual
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Disc %
             </th>
              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Kategori
@@ -66,8 +71,24 @@ const ProductManagementTable: React.FC<ProductManagementTableProps> = ({ product
                 <div className="text-gray-900 font-semibold">{formatRupiah(product.price)}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
+                <span
+                  className={`inline-block px-2 py-1 text-xs rounded-full font-bold ${
+                    product.stock !== undefined && product.stock < 5
+                      ? 'bg-red-100 text-red-800 animate-pulse'
+                      : 'text-gray-700 font-semibold'
+                  }`}
+                >
+                  {product.stock ?? 0}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
                 <span className="text-gray-700">
                   {product.sales || 0}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.discount ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                  {product.discount || 0}%
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">

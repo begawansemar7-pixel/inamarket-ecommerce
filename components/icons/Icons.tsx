@@ -303,3 +303,74 @@ export const AdjustmentsHorizontalIcon: React.FC<SVGProps> = (props) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
   </svg>
 );
+
+export const SewingMachineIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h12A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6zM16.5 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" />
+    </svg>
+);
+
+export const WrenchIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5-7.5-7.5 7.5-7.5z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12.75 15l-3.375 3.375a2.25 2.25 0 01-3.182 0l-1.5-1.5a2.25 2.25 0 010-3.182L8.25 10.5M12.75 15l-1.5-1.5" />
+    </svg>
+);
+
+export const PenToolIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12.953 2.288a1.875 1.875 0 112.652 2.652L6.73 17.828a2.25 2.25 0 01-1.285.656l-3.375.844.844-3.375a2.25 2.25 0 01.656-1.285L12.953 2.288z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.176-5.176" />
+    </svg>
+);
+
+export const CameraIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+    </svg>
+);
+
+export const FoodTrayIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75l.564-.282a1.875 1.875 0 012.132 0l.564.282a1.875 1.875 0 002.132 0l.564-.282a1.875 1.875 0 012.132 0l.564.282a1.875 1.875 0 002.132 0l.564-.282a1.875 1.875 0 012.132 0l.564.282" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-5.25" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.25h13.5a2.25 2.25 0 012.25 2.25v.512c0 .878-.42 1.68-1.125 2.15-1.002.69-2.317.99-3.625.99-1.308 0-2.623-.3-3.625-.99a2.393 2.393 0 01-1.125-2.15V7.5A2.25 2.25 0 015.25 5.25z" />
+    </svg>
+);
+
+export const PartyPopperIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.562L16.25 21.75l-.648-1.188a2.25 2.25 0 00-1.61-1.61L12.75 18l1.188-.648a2.25 2.25 0 001.61-1.61L16.25 15l.648 1.188a2.25 2.25 0 001.61 1.61L19.75 18l-1.188.648a2.25 2.25 0 00-1.61 1.61z" />
+    </svg>
+);
+
+export const CostumeIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a5.25 5.25 0 015.25 5.25H6.75A5.25 5.25 0 0112 6.75z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12v6.75a1.5 1.5 0 001.5 1.5h7.5a1.5 1.5 0 001.5-1.5V12" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75a.75.75 0 01.75-.75h6a.75.75 0 010 1.5h-6a.75.75 0 01-.75-.75zM12 3.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />
+    </svg>
+);
+
+export const SpeakerWaveIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5l.415-.207a.75.75 0 011.085.658V10.5m0 0a2.25 2.25 0 01-2.25 2.25H7.5a2.25 2.25 0 01-2.25-2.25v-3a2.25 2.25 0 012.25-2.25H8.25m6.75 0l.415-.207a.75.75 0 011.085.658V10.5m0 0a2.25 2.25 0 01-2.25 2.25h-.75a2.25 2.25 0 01-2.25-2.25v-3a2.25 2.25 0 012.25-2.25h.75" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15.75a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
+    </svg>
+);
+
+export const CarIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V9.75M18.75 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125H18.75z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 9.75L6 5.625h12l2.625 4.125" />
+    </svg>
+);
+
+export const EllipsisHorizontalIcon: React.FC<SVGProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+  </svg>
+);

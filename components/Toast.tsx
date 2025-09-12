@@ -1,8 +1,9 @@
 
 
+
 import React, { useEffect } from 'react';
 import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, CloseIcon } from './icons/Icons';
-// Fix: Import ToastMessage from the shared types file.
+// Fix: Import ToastMessage from the shared types file to ensure type consistency.
 import { ToastMessage } from '../types';
 
 interface ToastProps {

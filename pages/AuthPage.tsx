@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import LoginView from '../components/auth/LoginView';
 import RegisterView from '../components/auth/RegisterView';
@@ -37,7 +36,8 @@ const RoleButton: React.FC<{
 
 const AuthPage: React.FC<AuthPageProps> = ({ isOpen, onClose, onLoginSuccess, onAdminLoginClick }) => {
     const [view, setView] = useState<AuthView>('select-role');
-    const [role, setRole] = useState<UserRole | null>(null);
+    // Fix: Narrow the type for the 'role' state. It will never be 'Admin' as that role has a separate flow.
+    const [role, setRole] = useState<'Buyer' | 'Seller' | null>(null);
 
     useEffect(() => {
         if (!isOpen) {
@@ -88,7 +88,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isOpen, onClose, onLoginSuccess, on
             case 'login':
                 return <LoginView onLoginSuccess={handleAuthSuccess} onForgotPasswordClick={() => setView('forgot-password')} />;
             case 'register':
-                return <RegisterView onRegisterSuccess={handleAuthSuccess} />;
+                return <RegisterView onRegisterSuccess={handleAuthSuccess} role={role} />;
             case 'forgot-password':
                 return <ForgotPasswordView onBackToLogin={() => setView('login')} />;
             default:
@@ -129,14 +129,13 @@ const AuthPage: React.FC<AuthPageProps> = ({ isOpen, onClose, onLoginSuccess, on
                         >
                             Masuk
                         </button>
-                        {role !== 'Admin' && (
-                             <button
-                                onClick={() => handleTabClick('register')}
-                                className={`flex-1 py-3 text-center font-semibold transition-colors ${view === 'register' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:bg-gray-50'}`}
-                            >
-                                Daftar
-                            </button>
-                        )}
+                        {/* Fix: This comparison is always true because 'Admin' has a separate flow and the 'role' state will never be 'Admin'. */}
+                         <button
+                            onClick={() => handleTabClick('register')}
+                            className={`flex-1 py-3 text-center font-semibold transition-colors ${view === 'register' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:bg-gray-50'}`}
+                        >
+                            Daftar
+                        </button>
                     </div>
                 )}
                 
@@ -144,7 +143,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ isOpen, onClose, onLoginSuccess, on
                     {renderCoreView()}
                 </div>
 
-                 {(view === 'login' || view === 'register') && (role !== 'Admin') && (
+                 {/* Fix: This comparison is always true because 'Admin' has a separate flow and the 'role' state will never be 'Admin'. */}
+                 {(view === 'login' || view === 'register') && (
                      <div className="p-4 bg-gray-50 rounded-b-lg text-center">
                         <p className="text-sm text-gray-600">
                             {view === 'login' ? 'Belum punya akun? ' : 'Sudah punya akun? '}

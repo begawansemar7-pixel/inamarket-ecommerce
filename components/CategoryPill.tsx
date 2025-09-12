@@ -8,14 +8,15 @@ interface CategoryCardProps {
 
 const CategoryCard: React.FC<CategoryCardProps> = ({ name, icon: Icon, onClick }) => {
   return (
-    <button 
+    <button
       onClick={onClick}
-      className="group flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-lg text-center transition-all duration-300 hover:shadow-lg hover:border-primary hover:-translate-y-1"
+      className="group flex flex-col items-center justify-center p-4 bg-white rounded-xl text-center transition-all duration-300 ease-in-out hover:bg-teal-50/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      style={{ minHeight: '130px' }} // Ensure uniform height
     >
-      <div className="mb-2 p-3 bg-primary-light/20 rounded-full transition-colors group-hover:bg-primary-light/40">
-        <Icon className="w-8 h-8 text-primary-dark transition-transform group-hover:scale-110" />
+      <div className="flex items-center justify-center w-16 h-16 mb-3 bg-gray-100 rounded-full transition-colors duration-300 group-hover:bg-primary-light/30">
+        <Icon className="w-8 h-8 text-gray-600 transition-colors duration-300 group-hover:text-primary-dark" />
       </div>
-      <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-dark">{name}</span>
+      <span className="text-sm font-semibold text-gray-700 leading-tight transition-colors duration-300 group-hover:text-primary-dark">{name}</span>
     </button>
   );
 };
