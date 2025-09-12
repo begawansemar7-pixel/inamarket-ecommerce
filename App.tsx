@@ -27,6 +27,8 @@ import ContactPage from './pages/ContactPage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
+import ContactCenterFab from './components/ContactCenterFab';
+import InaContactCenter from './components/InaContactCenter';
 
 type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
 type UserRole = 'Buyer' | 'Seller' | 'Admin';
@@ -56,6 +58,9 @@ const App: React.FC = () => {
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
     
+    // AI Contact Center state
+    const [isContactCenterOpen, setContactCenterOpen] = useState(false);
+
     // Product and filter state
     const [allProducts] = useState<Product[]>(PRODUCTS);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>(PRODUCTS);
@@ -489,6 +494,8 @@ const App: React.FC = () => {
                 onSendMessage={handleSendMessage}
                 onBackToList={() => setActiveConversationId(null)}
             />
+            {page !== 'admin-login' && <ContactCenterFab onClick={() => setContactCenterOpen(true)} />}
+            <InaContactCenter isOpen={isContactCenterOpen} onClose={() => setContactCenterOpen(false)} />
              <div
               aria-live="assertive"
               className="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-50"

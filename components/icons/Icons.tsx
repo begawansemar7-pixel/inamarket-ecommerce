@@ -374,3 +374,10 @@ export const EllipsisHorizontalIcon: React.FC<SVGProps> = (props) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
   </svg>
 );
+
+export const RobotIcon: React.FC<SVGProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345h5.518a.562.562 0 01.329 1.004l-4.243 3.111a.563.563 0 00-.178.643l2.125 5.111a.562.562 0 01-.812.622l-4.243-3.11a.563.563 0 00-.658 0l-4.243 3.11a.562.562 0 01-.812-.622l2.125-5.111a.563.563 0 00-.178-.643L2.45 9.955a.562.562 0 01.329-1.004h5.518a.563.563 0 00.475-.345L11.48 3.5z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 9.75h.008v.008H9V9.75zm6 0h.008v.008H15V9.75z" />
+    </svg>
+);
