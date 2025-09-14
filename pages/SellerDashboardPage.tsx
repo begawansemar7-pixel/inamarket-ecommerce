@@ -12,7 +12,7 @@ import AccountingView from '../components/seller/AccountingView';
 type SellerView = 'products' | 'delivery' | 'services' | 'payment' | 'accounting';
 
 const SellerDashboardPage: React.FC = () => {
-  const [activeView, setActiveView] = useState<SellerView>('products');
+  const [activeView, setActiveView] = useState<SellerView>('accounting');
   const [myProducts, setMyProducts] = useState<Product[]>(
     PRODUCTS.filter(p => p.seller === 'Kopi Kita' || p.seller === 'Batik Indah' || p.seller === 'Kulit Asli')
   );

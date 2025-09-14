@@ -1,33 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { ServiceOffering } from '../../types';
 import { CloseIcon, DocumentArrowUpIcon } from '../icons/Icons';
-import { SERVICE_CATEGORIES_WITH_ICONS } from '../../constants';
 
 interface ServiceEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (service: ServiceOffering | Omit<ServiceOffering, 'id'>) => void;
   serviceToEdit?: ServiceOffering | null;
+  categories: { name: string }[];
 }
 
-const defaultService: Omit<ServiceOffering, 'id'> = {
-  name: '',
-  description: '',
-  category: SERVICE_CATEGORIES_WITH_ICONS[0]?.name || '',
-  price: 0,
-  imageUrl: 'https://picsum.photos/seed/newservice/400/400',
-  seller: 'Current Seller', // Placeholder
-  location: 'Jakarta', // Placeholder
-};
-
-const ServiceEditModal: React.FC<ServiceEditModalProps> = ({ isOpen, onClose, onSave, serviceToEdit }) => {
+const ServiceEditModal: React.FC<ServiceEditModalProps> = ({ isOpen, onClose, onSave, serviceToEdit, categories }) => {
+  
+  const defaultService: Omit<ServiceOffering, 'id'> = {
+    name: '',
+    description: '',
+    category: categories[0]?.name || '',
+    price: 0,
+    imageUrl: 'https://picsum.photos/seed/newservice/400/400',
+    seller: 'Current Seller', // Placeholder
+    location: 'Jakarta', // Placeholder
+  };
+  
   const [formData, setFormData] = useState<Omit<ServiceOffering, 'id'>>(defaultService);
 
   useEffect(() => {
     if (isOpen) {
-      setFormData(serviceToEdit || defaultService);
+      const initialData = serviceToEdit || {
+        ...defaultService,
+        category: categories[0]?.name || '', // Ensure default has a valid category
+      };
+      // Ensure the category exists in the list, otherwise default to the first one
+      if (!categories.some(c => c.name === initialData.category)) {
+          initialData.category = categories[0]?.name || '';
+      }
+      setFormData(initialData);
     }
-  }, [isOpen, serviceToEdit]);
+  }, [isOpen, serviceToEdit, categories]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -68,7 +77,7 @@ const ServiceEditModal: React.FC<ServiceEditModalProps> = ({ isOpen, onClose, on
               <div>
                 <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Kategori Jasa</label>
                 <select name="category" id="category" value={formData.category} onChange={handleChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
-                  {SERVICE_CATEGORIES_WITH_ICONS.map(cat => <option key={cat.name} value={cat.name}>{cat.name}</option>)}
+                  {categories.map(cat => <option key={cat.name} value={cat.name}>{cat.name}</option>)}
                 </select>
               </div>
               <div>
