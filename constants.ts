@@ -1,4 +1,4 @@
-import { Product, ShippingOption, SellerApplication, ServiceOffering } from './types';
+import { Product, ShippingOption, SellerApplication, ServiceOffering, HeroSlide } from './types';
 import {
     FoodAndDrinkIcon,
     FashionWomanIcon,
@@ -318,6 +318,45 @@ export const SHIPPING_OPTIONS: ShippingOption[] = [
   { id: 'standard', name: 'Reguler', price: 10000, estimatedDelivery: '2-4 hari' },
   { id: 'express', name: 'Express', price: 25000, estimatedDelivery: '1-2 hari' },
   { id: 'sameday', name: 'Same Day', price: 45000, estimatedDelivery: 'Hari ini' },
+];
+
+export const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: 1,
+    imageUrl: "https://picsum.photos/seed/carousel1/1600/600",
+    title: "Produk Unggulan Minggu Ini",
+    subtitle: "Dapatkan kerajinan tangan dan kuliner terbaik yang dipilih khusus untuk Anda.",
+    buttonText: "Hubungi Kami",
+    actionType: 'navigate',
+    actionPayload: 'contact'
+  },
+  {
+    id: 2,
+    imageUrl: "https://picsum.photos/seed/carousel2/1600/600",
+    title: "Promo Spesial Kemerdekaan",
+    subtitle: "Diskon hingga 79% untuk produk fashion dan aksesoris lokal. Rayakan Indonesia!",
+    buttonText: "Belanja Sekarang",
+    actionType: 'scroll',
+    actionPayload: 'product-section'
+  },
+  {
+    id: 3,
+    imageUrl: "https://picsum.photos/seed/carousel3/1600/600",
+    title: "Dukung UMKM Lokal",
+    subtitle: "Setiap pembelian Anda membantu pengrajin dan produsen kecil di seluruh nusantara.",
+    buttonText: "Pelajari Lebih Lanjut",
+    actionType: 'navigate',
+    actionPayload: 'about'
+  },
+  {
+    id: 4,
+    imageUrl: "https://picsum.photos/seed/carousel4/1600/600",
+    title: "Ada Pertanyaan?",
+    subtitle: "Tim kami yang ramah siap membantu Anda menemukan produk yang tepat atau menjawab pertanyaan apa pun.",
+    buttonText: "Hubungi Kami",
+    actionType: 'navigate',
+    actionPayload: 'contact'
+  }
 ];
 
 export const BOTTOM_CAROUSEL_SLIDES = [

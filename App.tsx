@@ -11,8 +11,8 @@ import AuthPage from './pages/AuthPage';
 import ProductDetailModal from './components/ProductDetailModal';
 import Toast from './components/Toast';
 import ChatPanel from './components/chat/ChatPanel';
-import { Product, CartItem, ToastMessage, Conversation, PromoBannerData, PaymentOptions } from './types';
-import { PRODUCTS, LOCATIONS, ALL_CATEGORIES } from './constants';
+import { Product, CartItem, ToastMessage, Conversation, PromoBannerData, PaymentOptions, HeroSlide } from './types';
+import { PRODUCTS, LOCATIONS, ALL_CATEGORIES, HERO_SLIDES } from './constants';
 import Hero from './components/Hero';
 import CategoryGrid from './components/CategoryGrid';
 import ProductGrid from './components/ProductGrid';
@@ -84,6 +84,9 @@ const App: React.FC = () => {
         subtitle: "Nikmati potongan harga spesial untuk produk pilihan. Jangan sampai ketinggalan!",
         buttonText: "Belanja Sekarang",
     });
+    
+    // Hero Carousel State
+    const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(HERO_SLIDES);
 
     // Seller-specific payment configurations (simulated backend data)
     const [sellerPaymentConfigs] = useState<Record<string, PaymentOptions>>({
@@ -419,6 +422,11 @@ const App: React.FC = () => {
         addToast('success', 'Banner promosi berhasil diperbarui.');
     };
 
+    const handleUpdateHeroSlides = (newSlides: HeroSlide[]) => {
+        setHeroSlides(newSlides);
+        addToast('success', 'Carousel atas berhasil diperbarui.');
+    };
+
     const handleToggleDirectSale = () => {
         setIsDirectSale(prev => !prev);
         addToast('info', `Mode Transaksi Langsung ${!isDirectSale ? 'diaktifkan' : 'dinonaktifkan'}.`);
@@ -429,7 +437,7 @@ const App: React.FC = () => {
             case 'home':
                 return (
                     <>
-                        <Hero onNavigate={handleNavigate} />
+                        <Hero onNavigate={handleNavigate} slides={heroSlides} />
                         <CollapsibleCategorySection title="Kategori Pilihan" bgColorClass="bg-white" defaultOpen={true}>
                             <CategoryGrid categories={ALL_CATEGORIES} onCategorySelect={handleCategorySelect} />
                         </CollapsibleCategorySection>
@@ -576,6 +584,8 @@ const App: React.FC = () => {
                     return <AdminDashboardPage 
                                 promoBannerData={promoBannerData} 
                                 onUpdatePromoBanner={handleUpdatePromoBanner}
+                                heroSlides={heroSlides}
+                                onUpdateHeroSlides={handleUpdateHeroSlides}
                             />;
                 }
                 handleNavigate('home'); // Redirect if not authorized

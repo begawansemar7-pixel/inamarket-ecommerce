@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { PromoBannerData } from '../../types';
 import AdminSection from './AdminSection';
 import PromoBanner from '../PromoBanner';
+import { fileToBase64 } from '../../utils/fileUtils';
 
 // A toggle switch component for better UX
 const ToggleSwitch: React.FC<{ enabled: boolean; onChange: (enabled: boolean) => void }> = ({ enabled, onChange }) => (
@@ -30,6 +31,7 @@ interface PromoBannerManagementViewProps {
 
 const PromoBannerManagementView: React.FC<PromoBannerManagementViewProps> = ({ initialData, onSave }) => {
   const [formData, setFormData] = useState<PromoBannerData>(initialData);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -43,6 +45,19 @@ const PromoBannerManagementView: React.FC<PromoBannerManagementViewProps> = ({ i
   const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       onSave(formData);
+  };
+  
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const base64String = await fileToBase64(file);
+        setFormData(prev => ({ ...prev, imageUrl: base64String }));
+      } catch (error) {
+        console.error("Error converting file to Base64", error);
+        alert("Gagal memuat gambar. Silakan coba lagi.");
+      }
+    }
   };
 
   return (
@@ -69,8 +84,15 @@ const PromoBannerManagementView: React.FC<PromoBannerManagementViewProps> = ({ i
                     <input type="text" name="buttonText" id="buttonText" value={formData.buttonText} onChange={handleChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" />
                 </div>
                 <div>
-                    <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-1">URL Gambar Latar</label>
-                    <input type="url" name="imageUrl" id="imageUrl" value={formData.imageUrl} onChange={handleChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" />
+                    <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-1">Gambar Latar</label>
+                    <div className="flex items-center space-x-2">
+                      <input type="text" name="imageUrl" id="imageUrl" value={formData.imageUrl} onChange={handleChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" placeholder="URL atau unggah gambar"/>
+                      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp" />
+                      <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-shrink-0 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-md text-sm">
+                          Upload
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Ukuran yang disarankan: 1200x300 piksel.</p>
                 </div>
                 <div className="pt-2">
                     <button type="submit" className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-2.5 px-4 rounded-md transition-colors shadow-sm hover:shadow-md">

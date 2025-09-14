@@ -1,71 +1,34 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons/Icons';
+import { HeroSlide } from '../types';
 
 type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
 
 interface HeroProps {
     onNavigate: (page: Page) => void;
+    slides: HeroSlide[];
 }
 
-const slides = [
-  {
-    id: 1,
-    imageUrl: "https://picsum.photos/seed/carousel1/1600/600",
-    title: "Produk Unggulan Minggu Ini",
-    subtitle: "Dapatkan kerajinan tangan dan kuliner terbaik yang dipilih khusus untuk Anda.",
-    buttonText: "Hubungi Kami",
-    actionType: 'navigate',
-    actionPayload: 'contact' as Page
-  },
-  {
-    id: 2,
-    imageUrl: "https://picsum.photos/seed/carousel2/1600/600",
-    title: "Promo Spesial Kemerdekaan",
-    subtitle: "Diskon hingga 79% untuk produk fashion dan aksesoris lokal. Rayakan Indonesia!",
-    buttonText: "Belanja Sekarang",
-    actionType: 'scroll',
-    actionPayload: 'product-section'
-  },
-  {
-    id: 3,
-    imageUrl: "https://picsum.photos/seed/carousel3/1600/600",
-    title: "Dukung UMKM Lokal",
-    subtitle: "Setiap pembelian Anda membantu pengrajin dan produsen kecil di seluruh nusantara.",
-    buttonText: "Pelajari Lebih Lanjut",
-    actionType: 'navigate',
-    actionPayload: 'about' as Page
-  },
-  {
-    id: 4,
-    imageUrl: "https://picsum.photos/seed/carousel4/1600/600",
-    title: "Ada Pertanyaan?",
-    subtitle: "Tim kami yang ramah siap membantu Anda menemukan produk yang tepat atau menjawab pertanyaan apa pun.",
-    buttonText: "Hubungi Kami",
-    actionType: 'navigate',
-    actionPayload: 'contact' as Page
-  }
-];
-
-const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
+const Hero: React.FC<HeroProps> = ({ onNavigate, slides }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToPrevious = useCallback(() => {
     const isFirstSlide = currentIndex === 0;
     const newIndex = isFirstSlide ? slides.length - 1 : currentIndex - 1;
     setCurrentIndex(newIndex);
-  }, [currentIndex]);
+  }, [currentIndex, slides.length]);
 
   const goToNext = useCallback(() => {
     const isLastSlide = currentIndex === slides.length - 1;
     const newIndex = isLastSlide ? 0 : currentIndex + 1;
     setCurrentIndex(newIndex);
-  }, [currentIndex]);
+  }, [currentIndex, slides.length]);
 
   const goToSlide = (slideIndex: number) => {
     setCurrentIndex(slideIndex);
   };
 
-  const handleButtonClick = (slide: typeof slides[0]) => {
+  const handleButtonClick = (slide: HeroSlide) => {
       if (slide.actionType === 'scroll' && slide.actionPayload) {
           document.getElementById(slide.actionPayload)?.scrollIntoView({ behavior: 'smooth' });
       } else if (slide.actionType === 'navigate') {

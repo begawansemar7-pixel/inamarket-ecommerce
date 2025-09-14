@@ -139,3 +139,18 @@ export interface BusinessService {
   serviceOfferings: ServiceOffering[];
   operationalHours: OperationalHours;
 }
+
+export interface HeroSlide {
+  id: number;
+  imageUrl: string;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  actionType: 'navigate' | 'scroll';
+  actionPayload: string;
+}
+
+export interface PriceSuggestion {
+  suggested_price: number;
+  reasoning: string;
+}

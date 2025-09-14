@@ -4,21 +4,25 @@ import DashboardView from '../components/admin/DashboardView';
 import SellerApprovalView from '../components/admin/SellerApprovalView';
 import CarouselManagementView from '../components/admin/CarouselManagementView';
 import PromoBannerManagementView from '../components/admin/PromoBannerManagementView';
-import { PromoBannerData } from '../types';
+import { PromoBannerData, HeroSlide } from '../types';
+import HeroCarouselManagementView from '../components/admin/HeroCarouselManagementView';
 
-type AdminView = 'dashboard' | 'sellers' | 'carousel' | 'promo-banner' | 'settings';
+type AdminView = 'dashboard' | 'sellers' | 'carousel' | 'promo-banner' | 'settings' | 'hero-carousel';
 
 interface AdminDashboardPageProps {
   promoBannerData: PromoBannerData;
   onUpdatePromoBanner: (newData: PromoBannerData) => void;
+  heroSlides: HeroSlide[];
+  onUpdateHeroSlides: (newSlides: HeroSlide[]) => void;
 }
 
-const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ promoBannerData, onUpdatePromoBanner }) => {
+const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ promoBannerData, onUpdatePromoBanner, heroSlides, onUpdateHeroSlides }) => {
   const [activeView, setActiveView] = useState<AdminView>('dashboard');
 
   const navItems = [
     { id: 'dashboard', label: 'Dasbor', icon: ChartPieIcon },
     { id: 'sellers', label: 'Persetujuan Penjual', icon: UserGroupIcon },
+    { id: 'hero-carousel', label: 'Carousel Atas', icon: ImageIcon },
     { id: 'carousel', label: 'Carousel Bawah', icon: ImageIcon },
     { id: 'promo-banner', label: 'Banner Promosi', icon: TagIcon },
     { id: 'settings', label: 'Pengaturan', icon: Cog6ToothIcon },
@@ -30,6 +34,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ promoBannerData
         return <DashboardView />;
       case 'sellers':
         return <SellerApprovalView />;
+      case 'hero-carousel':
+        return <HeroCarouselManagementView slides={heroSlides} onSave={onUpdateHeroSlides} />;
       case 'carousel':
         return <CarouselManagementView />;
       case 'promo-banner':

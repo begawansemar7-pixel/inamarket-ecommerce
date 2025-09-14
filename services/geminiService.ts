@@ -1,5 +1,5 @@
-// Fix: Import GenerateContentParameters for proper typing.
-import { GoogleGenAI, GenerateContentResponse, GenerateContentParameters } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, GenerateContentParameters, Type } from "@google/genai";
+import { PriceSuggestion } from '../types';
 
 // Ensure the API key is available as an environment variable
 if (!process.env.API_KEY) {
@@ -23,11 +23,9 @@ export const generateProductDescription = async (
     .replace(/\$\{productName\}/g, productName)
     .replace(/\$\{features\}/g, features);
 
-  // Fix: Use the correct type for contents and handle single vs. multipart requests as per guidelines.
   let contents: GenerateContentParameters['contents'];
 
   if (image) {
-    // For multipart, provide image part first, then text part.
     contents = {
       parts: [
         {
@@ -40,7 +38,6 @@ export const generateProductDescription = async (
       ],
     };
   } else {
-    // For text-only, a simple string is sufficient.
     contents = finalPrompt;
   }
 
@@ -72,5 +69,51 @@ export const generateProductImage = async (prompt: string): Promise<string> => {
   } catch (error) {
     console.error("Error generating image:", error);
     throw new Error("Gagal membuat gambar produk. Silakan coba lagi.");
+  }
+};
+
+export const suggestProductPrice = async (
+  productName: string,
+  category: string,
+  description: string
+): Promise<PriceSuggestion> => {
+  const prompt = `Anda adalah seorang ahli strategi harga e-commerce untuk pasar UMKM Indonesia. Berdasarkan informasi produk berikut, berikan usulan harga jual dalam Rupiah (IDR) dan alasan singkatnya.
+  
+  Nama Produk: "${productName}"
+  Kategori: "${category}"
+  Deskripsi: "${description}"
+  
+  Pertimbangkan faktor seperti kategori, keunikan produk (berdasarkan deskripsi), dan target pasar umum untuk UMKM di Indonesia. Berikan harga yang kompetitif namun tetap menguntungkan.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            suggested_price: {
+              type: Type.INTEGER,
+              description: 'Harga yang disarankan dalam Rupiah (IDR), hanya angka.',
+            },
+            reasoning: {
+              type: Type.STRING,
+              description: 'Penjelasan singkat (1-2 kalimat) mengenai dasar usulan harga tersebut.',
+            },
+          },
+          required: ['suggested_price', 'reasoning'],
+        },
+      },
+    });
+
+    const jsonString = response.text;
+    const parsedJson = JSON.parse(jsonString) as PriceSuggestion;
+    return parsedJson;
+
+  } catch (error) {
+    console.error("Error suggesting price:", error);
+    throw new Error("Gagal mendapatkan saran harga. Silakan coba lagi.");
   }
 };
