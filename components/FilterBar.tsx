@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import FilterAccordion from './FilterAccordion';
 import { CloseIcon } from './icons/Icons';
 
@@ -43,21 +43,31 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     availableLocations,
     showPriceFilter
 }) => {
-  const isCategoryActive = filters.category !== 'all';
-  const isLocationActive = filters.location !== 'all';
-  const isPriceActive = filters.price[0] > 0 || filters.price[1] < maxPrice;
-  const anyFilterActive = isCategoryActive || isLocationActive || isPriceActive;
+  const [localFilters, setLocalFilters] = useState(filters);
+
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
+
+  const handleLocalFilterChange = (filterName: keyof typeof filters, value: any) => {
+    setLocalFilters(prev => ({ ...prev, [filterName]: value }));
+    onFilterChange(filterName, value);
+  };
   
   const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newMin = Math.min(Number(e.target.value), filters.price[1] - 1000); // Prevent crossing with a gap
-      onFilterChange('price', [newMin, filters.price[1]]);
+      const newMin = Math.min(Number(e.target.value), localFilters.price[1] - 1000);
+      handleLocalFilterChange('price', [newMin, localFilters.price[1]]);
   };
 
   const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newMax = Math.max(Number(e.target.value), filters.price[0] + 1000); // Prevent crossing with a gap
-      onFilterChange('price', [filters.price[0], newMax]);
+      const newMax = Math.max(Number(e.target.value), localFilters.price[0] + 1000);
+      handleLocalFilterChange('price', [localFilters.price[0], newMax]);
   };
-
+  
+  const isCategoryActive = localFilters.category !== 'all';
+  const isLocationActive = localFilters.location !== 'all';
+  const isPriceActive = localFilters.price[0] > 0 || localFilters.price[1] < maxPrice;
+  const anyFilterActive = isCategoryActive || isLocationActive || isPriceActive;
   const showLocationFilter = availableLocations.length > 1;
   
   return (
@@ -74,13 +84,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               <h3 className="text-md font-semibold text-gray-800 mb-3">Filter Aktif</h3>
               <div className="flex flex-wrap gap-2">
                   {isCategoryActive && (
-                      <FilterPill label={filters.category} onRemove={() => onFilterChange('category', 'all')} />
+                      <FilterPill label={localFilters.category} onRemove={() => handleLocalFilterChange('category', 'all')} />
                   )}
                   {isLocationActive && (
-                      <FilterPill label={filters.location} onRemove={() => onFilterChange('location', 'all')} />
+                      <FilterPill label={localFilters.location} onRemove={() => handleLocalFilterChange('location', 'all')} />
                   )}
                   {isPriceActive && (
-                      <FilterPill label={`${formatRupiah(filters.price[0])} - ${formatRupiah(filters.price[1])}`} onRemove={() => onFilterChange('price', [0, maxPrice])} />
+                      <FilterPill label={`${formatRupiah(localFilters.price[0])} - ${formatRupiah(localFilters.price[1])}`} onRemove={() => handleLocalFilterChange('price', [0, maxPrice])} />
                   )}
               </div>
           </div>
@@ -97,8 +107,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                         <div
                             className="absolute h-1 bg-primary rounded-full top-1/2 -translate-y-1/2"
                             style={{
-                                left: `${(filters.price[0] / maxPrice) * 100}%`,
-                                right: `${100 - (filters.price[1] / maxPrice) * 100}%`,
+                                left: `${(localFilters.price[0] / maxPrice) * 100}%`,
+                                right: `${100 - (localFilters.price[1] / maxPrice) * 100}%`,
                             }}
                         />
                         
@@ -107,7 +117,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                             type="range"
                             min="0"
                             max={maxPrice}
-                            value={filters.price[0]}
+                            value={localFilters.price[0]}
                             onChange={handleMinPriceChange}
                             className="absolute w-full h-5 appearance-none bg-transparent pointer-events-none range-slider-thumb"
                             aria-label="Minimum price"
@@ -117,15 +127,15 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                             type="range"
                             min="0"
                             max={maxPrice}
-                            value={filters.price[1]}
+                            value={localFilters.price[1]}
                             onChange={handleMaxPriceChange}
                             className="absolute w-full h-5 appearance-none bg-transparent pointer-events-none range-slider-thumb"
                             aria-label="Maximum price"
                         />
                     </div>
                     <div className="flex justify-between text-sm text-gray-600 mt-3">
-                    <span>{formatRupiah(filters.price[0])}</span>
-                    <span>{formatRupiah(filters.price[1])}</span>
+                    <span>{formatRupiah(localFilters.price[0])}</span>
+                    <span>{formatRupiah(localFilters.price[1])}</span>
                     </div>
               </div>
             </FilterAccordion>
@@ -133,22 +143,37 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
         {showLocationFilter && (
             <FilterAccordion title="Lokasi" defaultOpen={true} isActive={isLocationActive}>
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+              <div className="flex flex-col space-y-2 pt-2">
                 <button
-                    onClick={() => onFilterChange('location', 'all')}
-                    className={`w-full text-left p-2 rounded-md text-sm transition-colors ${filters.location === 'all' ? 'font-bold text-primary bg-primary-light/10' : 'text-gray-700 hover:bg-gray-100'}`}
+                  onClick={() => handleLocalFilterChange('location', 'all')}
+                  className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                    localFilters.location === 'all'
+                      ? 'bg-primary text-white font-semibold shadow-sm'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
                 >
-                    Semua Lokasi
+                  Semua Lokasi
                 </button>
-                {locations.map((location) => (
-                  <button
-                    key={location}
-                    onClick={() => onFilterChange('location', location)}
-                    className={`w-full text-left p-2 rounded-md text-sm transition-colors ${filters.location === location ? 'font-bold text-primary bg-primary-light/10' : 'text-gray-700 hover:bg-gray-100'}`}
-                  >
-                    {location}
-                  </button>
-                ))}
+                {locations.map((location) => {
+                  const isSelected = localFilters.location === location;
+                  const isAvailable = availableLocations.includes(location);
+                  return (
+                    <button
+                      key={location}
+                      onClick={() => handleLocalFilterChange('location', location)}
+                      disabled={!isAvailable}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                        isSelected
+                          ? 'bg-primary text-white font-semibold shadow-sm'
+                          : isAvailable
+                            ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                            : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {location}
+                    </button>
+                  );
+                })}
               </div>
             </FilterAccordion>
         )}

@@ -9,8 +9,8 @@ import PaymentStep from '../components/checkout/PaymentStep';
 import ConfirmationStep from '../components/checkout/ConfirmationStep';
 import OrderSummary from '../components/checkout/OrderSummary';
 
-// Fix: Expanded Page type to include all possible navigation routes.
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+type UserRole = 'Buyer' | 'Seller' | 'Admin';
 
 interface CheckoutPageProps {
   items: CartItem[];
@@ -25,7 +25,6 @@ interface CheckoutPageProps {
   addToast: (type: ToastMessage['type'], message: string) => void;
 }
 
-// Fix: Defined CheckoutStep type which was causing a compilation error.
 type CheckoutStep = 'address' | 'shipping' | 'payment' | 'confirmation';
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ 
@@ -95,6 +94,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Header 
         isAuthenticated={isAuthenticated}
+        userRole={isAuthenticated ? 'Buyer' : null} // Dummy role
         onLoginClick={onLoginClick}
         onSellClick={() => {}} 
         onNavigate={onNavigate} 
@@ -123,7 +123,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </div>
         </div>
       </main>
-      {/* Fix: Passed the required 'addToast' prop to the Footer component. */}
       <Footer onNavigate={onNavigate} addToast={addToast} />
     </div>
   );

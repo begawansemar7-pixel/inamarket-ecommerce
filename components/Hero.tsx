@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons/Icons';
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
 
 interface HeroProps {
     onNavigate: (page: Page) => void;
@@ -86,16 +86,17 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="relative z-10 text-center text-white px-4">
+            <div key={slide.id} className="relative z-10 text-center text-white px-4">
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight animate-fade-in-down">
                 {slide.title}
               </h1>
-              <p className="mt-4 text-lg md:text-xl max-w-2xl mx-auto animate-fade-in-up delay-300">
+              <p className="mt-4 text-lg md:text-xl max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 {slide.subtitle}
               </p>
               <button
                 onClick={() => handleButtonClick(slide)}
-                className="mt-8 bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105 animate-fade-in-up delay-500"
+                className="mt-8 bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105 animate-fade-in-up"
+                style={{ animationDelay: '0.4s' }}
               >
                   {slide.buttonText}
               </button>
@@ -144,8 +145,6 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
         }
         .animate-fade-in-down { animation: fade-in-down 0.6s ease-out forwards; }
         .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
-        .delay-300 { animation-delay: 0.3s; }
-        .delay-500 { animation-delay: 0.5s; }
         .animate-fade-in-down, .animate-fade-in-up {
            animation-fill-mode: backwards;
         }

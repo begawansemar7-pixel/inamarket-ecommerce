@@ -1,4 +1,3 @@
-
 // Fix: Import GenerateContentParameters for proper typing.
 import { GoogleGenAI, GenerateContentResponse, GenerateContentParameters } from "@google/genai";
 
@@ -54,5 +53,24 @@ export const generateProductDescription = async (
   } catch (error) {
     console.error("Error generating description:", error);
     throw new Error("Gagal membuat deskripsi. Silakan coba lagi.");
+  }
+};
+
+export const generateProductImage = async (prompt: string): Promise<string> => {
+  try {
+    const response = await ai.models.generateImages({
+        model: 'imagen-4.0-generate-001',
+        prompt: prompt,
+        config: {
+          numberOfImages: 1,
+          outputMimeType: 'image/jpeg',
+          aspectRatio: '1:1',
+        },
+    });
+    const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
+    return `data:image/jpeg;base64,${base64ImageBytes}`;
+  } catch (error) {
+    console.error("Error generating image:", error);
+    throw new Error("Gagal membuat gambar produk. Silakan coba lagi.");
   }
 };

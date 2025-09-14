@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { generateProductDescription } from '../services/geminiService';
+import { generateProductDescription, generateProductImage } from '../services/geminiService';
 import Spinner from './Spinner';
 import { SparklesIcon, CloseIcon, MagicWandIcon, DocumentTextIcon, ImageIcon, TrashIcon, DocumentArrowUpIcon, CheckCircleIcon } from './icons/Icons';
 import { fileToBase64 } from '../utils/fileUtils';
@@ -36,6 +36,7 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
   const [features, setFeatures] = useState('');
   const [generatedDescription, setGeneratedDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'result'>('details');
   
@@ -60,6 +61,7 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
       setError(null);
       setActiveTab('details');
       setIsLoading(false);
+      setIsGeneratingImage(false);
       setShowAdvanced(false);
       setCustomPrompt(DEFAULT_PROMPT);
       setIsUploading(false);
@@ -151,13 +153,30 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
         imageData = { mimeType, data };
       }
 
+      // Step 1: Generate Description
       const description = await generateProductDescription(productName, features, customPrompt, imageData);
       setGeneratedDescription(description);
+      setIsLoading(false);
+
+      // Step 2: Generate Image
+      setIsGeneratingImage(true);
+      const imagePrompt = `A professional, clean, high-quality e-commerce product photo of '${productName}'. Product features: ${features}. White or light gray background, studio lighting.`;
+      const generatedDataUrl = await generateProductImage(imagePrompt);
+
+      // Revoke old blob URL if it exists
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+          URL.revokeObjectURL(imagePreview);
+      }
+      
+      setImagePreview(generatedDataUrl);
+      setImage(null); // Clear the File object, as we now have a data URL
+
       setActiveTab('result'); // Switch to result tab on success
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setIsLoading(false);
+      setIsGeneratingImage(false);
     }
   };
   
@@ -215,12 +234,18 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div className="p-6 space-y-4 overflow-y-auto flex-grow relative">
-          {(isLoading || isUploading || uploadSuccess) && (
+          {(isLoading || isGeneratingImage || isUploading || uploadSuccess) && (
             <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10 p-6 text-center">
               {isLoading && (
                   <>
                     <Spinner />
                     <p className="mt-3 text-gray-600 font-medium">AI sedang meracik kata-kata terbaik...</p>
+                  </>
+              )}
+              {isGeneratingImage && (
+                  <>
+                    <Spinner />
+                    <p className="mt-3 text-gray-600 font-medium">AI sedang membuat gambar produk...</p>
                   </>
               )}
               {isUploading && (
@@ -239,7 +264,7 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          <div style={{ visibility: (isUploading || uploadSuccess) ? 'hidden' : 'visible' }}>
+          <div style={{ visibility: (isLoading || isGeneratingImage || isUploading || uploadSuccess) ? 'hidden' : 'visible' }}>
             {activeTab === 'details' && (
               <div className="space-y-4">
                 <div>
@@ -344,6 +369,7 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
               <SellModalResultView
                   description={generatedDescription}
                   onDescriptionChange={setGeneratedDescription}
+                  imagePreview={imagePreview}
               />
             )}
           </div>
@@ -353,11 +379,11 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
           <div className="p-5 bg-gray-50 rounded-b-lg border-t">
             <button
               onClick={handleGenerate}
-              disabled={isLoading}
+              disabled={isLoading || isGeneratingImage}
               className="w-full flex items-center justify-center bg-primary hover:bg-primary-dark text-white font-bold py-2.5 px-4 rounded-md transition-colors disabled:bg-primary-light disabled:cursor-not-allowed shadow-sm hover:shadow-md"
             >
               <SparklesIcon className="w-5 h-5 mr-2" />
-              Buat Deskripsi
+              Buat Deskripsi & Gambar
             </button>
           </div>
         )}

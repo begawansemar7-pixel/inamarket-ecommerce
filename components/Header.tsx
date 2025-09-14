@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCartIcon, SparklesIcon, UserCircleIcon, SearchIcon, ChatBubbleLeftRightIcon } from './icons/Icons';
 import ProfileDropdown from './ProfileDropdown';
 
-// Fix: Expanded Page type to include all possible navigation routes.
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+type UserRole = 'Buyer' | 'Seller' | 'Admin';
 
 interface HeaderProps {
     isAuthenticated: boolean;
+    userRole: UserRole | null;
     onLoginClick: () => void;
     onSellClick: () => void;
     onNavigate: (page: Page) => void;
@@ -18,7 +19,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ 
-    isAuthenticated, 
+    isAuthenticated,
+    userRole,
     onLoginClick, 
     onSellClick, 
     onNavigate, 
@@ -122,6 +124,7 @@ const Header: React.FC<HeaderProps> = ({
                                 </button>
                                 <ProfileDropdown
                                     isOpen={isProfileOpen}
+                                    userRole={userRole}
                                     onClose={() => setProfileOpen(false)}
                                     onNavigate={onNavigate}
                                     onLogout={onLogout}

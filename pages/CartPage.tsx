@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingCartIcon, DocumentTextIcon, ChevronRightIcon, TrashIcon } from '../components/icons/Icons';
 import { Product, CartItem as CartItemType } from '../types';
 import { PRODUCTS } from '../constants';
@@ -17,57 +16,77 @@ const CartItemRow: React.FC<{
     item: CartItemType;
     onUpdateQuantity: (id: number, quantity: number) => void;
     onRemoveItem: (id: number) => void;
-}> = ({ item, onUpdateQuantity, onRemoveItem }) => (
-    <div className="flex flex-col sm:grid sm:grid-cols-6 sm:gap-4 sm:items-center py-4 border-b">
-        {/* Product Info (Combined with mobile layout) */}
-        <div className="col-span-3 flex items-center space-x-4">
-            <img src={item.imageUrl} alt={item.name} className="w-20 h-20 rounded-md object-cover flex-shrink-0" />
-            <div className="flex-grow">
-                <p className="font-semibold text-gray-800">{item.name}</p>
-                <p className="text-sm text-gray-500">{formatRupiah(item.price)}</p>
-                {/* Mobile-only subtotal */}
-                <p className="sm:hidden text-base font-bold text-primary-dark mt-2">
+    isRemoving: boolean;
+}> = ({ item, onUpdateQuantity, onRemoveItem, isRemoving }) => {
+    const [isUpdating, setIsUpdating] = useState(false);
+    const prevQuantity = useRef(item.quantity);
+
+    useEffect(() => {
+        if (prevQuantity.current !== item.quantity) {
+            setIsUpdating(true);
+            const timer = setTimeout(() => setIsUpdating(false), 600);
+            prevQuantity.current = item.quantity;
+            return () => clearTimeout(timer);
+        }
+    }, [item.quantity]);
+
+    return (
+        <div className={`
+            flex flex-col sm:grid sm:grid-cols-6 sm:gap-4 sm:items-center py-4 border-b
+            transition-all duration-300 ease-in-out overflow-hidden
+            ${isRemoving ? 'opacity-0 -translate-x-5 max-h-0 !py-0 !border-transparent' : 'max-h-40'}
+            ${isUpdating ? 'animate-flash-bg' : ''}
+        `}>
+            {/* Product Info (Combined with mobile layout) */}
+            <div className="col-span-3 flex items-center space-x-4">
+                <img src={item.imageUrl} alt={item.name} className="w-20 h-20 rounded-md object-cover flex-shrink-0" />
+                <div className="flex-grow">
+                    <p className="font-semibold text-gray-800">{item.name}</p>
+                    <p className="text-sm text-gray-500">{formatRupiah(item.price)}</p>
+                    {/* Mobile-only subtotal */}
+                    <p className="sm:hidden text-base font-bold text-primary-dark mt-2">
+                        {formatRupiah(item.price * item.quantity)}
+                    </p>
+                </div>
+            </div>
+
+            {/* Quantity Controls & Remove (Combined for mobile) */}
+            <div className="col-span-3 flex sm:grid sm:grid-cols-3 sm:gap-4 items-center justify-between mt-4 sm:mt-0">
+                {/* Quantity */}
+                <div className="sm:col-span-1 flex items-center sm:justify-center">
+                    <button 
+                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                        disabled={item.quantity <= 1}
+                        className="border rounded-l-md px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                        aria-label="Decrease quantity"
+                    >
+                        &ndash;
+                    </button>
+                    <span className="border-t border-b px-3 py-1.5 text-center font-medium text-gray-800 w-12">{item.quantity}</span>
+                    <button 
+                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        className="border rounded-r-md px-3 py-1.5 text-gray-600 hover:bg-gray-100"
+                        aria-label="Increase quantity"
+                    >
+                        +
+                    </button>
+                </div>
+
+                {/* Subtotal (Desktop) */}
+                <p className="hidden sm:block sm:col-span-1 text-lg font-bold text-primary-dark text-right">
                     {formatRupiah(item.price * item.quantity)}
                 </p>
+
+                {/* Remove Button */}
+                <div className="sm:col-span-1 flex justify-end">
+                    <button onClick={() => onRemoveItem(item.id)} className="text-gray-400 hover:text-red-600 p-1" aria-label={`Remove ${item.name}`}>
+                        <TrashIcon className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
         </div>
-
-        {/* Quantity Controls & Remove (Combined for mobile) */}
-        <div className="col-span-3 flex sm:grid sm:grid-cols-3 sm:gap-4 items-center justify-between mt-4 sm:mt-0">
-            {/* Quantity */}
-            <div className="sm:col-span-1 flex items-center sm:justify-center">
-                <button 
-                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                    disabled={item.quantity <= 1}
-                    className="border rounded-l-md px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                    aria-label="Decrease quantity"
-                >
-                    &ndash;
-                </button>
-                <span className="border-t border-b px-3 py-1.5 text-center font-medium text-gray-800 w-12">{item.quantity}</span>
-                <button 
-                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                    className="border rounded-r-md px-3 py-1.5 text-gray-600 hover:bg-gray-100"
-                    aria-label="Increase quantity"
-                >
-                    +
-                </button>
-            </div>
-
-            {/* Subtotal (Desktop) */}
-            <p className="hidden sm:block sm:col-span-1 text-lg font-bold text-primary-dark text-right">
-                {formatRupiah(item.price * item.quantity)}
-            </p>
-
-            {/* Remove Button */}
-            <div className="sm:col-span-1 flex justify-end">
-                <button onClick={() => onRemoveItem(item.id)} className="text-gray-400 hover:text-red-600 p-1" aria-label={`Remove ${item.name}`}>
-                    <TrashIcon className="w-5 h-5" />
-                </button>
-            </div>
-        </div>
-    </div>
-);
+    );
+};
 
 
 const TransactionHistoryItem: React.FC<{item: Product & { date: string, status: 'Selesai' | 'Dikirim'}}> = ({ item }) => (
@@ -100,6 +119,8 @@ interface CartPageProps {
 }
 
 const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveItem, onCheckout, onStartShopping }) => {
+  const [removingItemId, setRemovingItemId] = useState<number | null>(null);
+
   // Dummy data for history
   const transactionHistory = [
       {...PRODUCTS[0], date: '1 Agu 2024', status: 'Selesai' as const},
@@ -108,6 +129,14 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
   ];
 
   const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  
+  const handleStartRemove = (itemId: number) => {
+    setRemovingItemId(itemId);
+    // Wait for animation to finish before removing from state
+    setTimeout(() => {
+        onRemoveItem(itemId);
+    }, 300); 
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -133,7 +162,7 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
                             <div className="col-span-1 text-right pr-1">Hapus</div>
                         </div>
 
-                        {items.map(item => <CartItemRow key={item.id} item={item} onUpdateQuantity={onUpdateQuantity} onRemoveItem={onRemoveItem} />)}
+                        {items.map(item => <CartItemRow key={item.id} item={item} onUpdateQuantity={onUpdateQuantity} onRemoveItem={() => handleStartRemove(item.id)} isRemoving={removingItemId === item.id} />)}
                         
                         <div className="mt-6 flex flex-col sm:flex-row justify-end items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
                             <div className="text-right">

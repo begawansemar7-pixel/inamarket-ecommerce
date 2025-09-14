@@ -1,31 +1,27 @@
 
 import React from 'react';
-import { UserCircleIcon, BuildingStorefrontIcon, ArrowLeftOnRectangleIcon } from './icons/Icons';
+import { UserCircleIcon, BuildingStorefrontIcon, ArrowLeftOnRectangleIcon, WrenchScrewdriverIcon } from './icons/Icons';
 
-// Fix: Expanded Page type to include all possible navigation routes.
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+type UserRole = 'Buyer' | 'Seller' | 'Admin';
 
 interface ProfileDropdownProps {
   isOpen: boolean;
+  userRole: UserRole | null;
   onClose: () => void;
   onNavigate: (page: Page) => void;
   onLogout: () => void;
 }
 
-const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isOpen, onClose, onNavigate, onLogout }) => {
+const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isOpen, userRole, onClose, onNavigate, onLogout }) => {
   if (!isOpen) {
     return null;
   }
 
-  const handleProfileClick = () => {
-    onNavigate('profile');
+  const handleNavigate = (page: Page) => {
+    onNavigate(page);
     onClose();
   };
-
-  const handleSellerDashboardClick = () => {
-    onNavigate('dashboard');
-    onClose();
-  }
 
   const handleLogout = () => {
     onLogout();
@@ -43,35 +39,45 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isOpen, onClose, onNa
       <div className="py-1" role="none">
         <div className="px-4 py-2 border-b">
             <p className="text-sm text-gray-700">Masuk sebagai</p>
-            <p className="text-sm font-medium text-gray-900 truncate">pengguna_inamarket</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{userRole || 'Pengguna'}</p>
         </div>
         <button
-          onClick={handleProfileClick}
+          onClick={() => handleNavigate('profile')}
           className="w-full text-left text-gray-700 group flex items-center px-4 py-2 text-sm hover:bg-gray-100"
           role="menuitem"
           tabIndex={-1}
-          id="user-menu-item-0"
         >
           <UserCircleIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
           Lihat Profil
         </button>
-        <button
-          onClick={handleSellerDashboardClick}
-          className="w-full text-left text-gray-700 group flex items-center px-4 py-2 text-sm hover:bg-gray-100"
-          role="menuitem"
-          tabIndex={-1}
-          id="user-menu-item-1"
-        >
-          <BuildingStorefrontIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
-          Dasbor Penjual
-        </button>
+        {userRole === 'Seller' && (
+            <button
+              onClick={() => handleNavigate('dashboard')}
+              className="w-full text-left text-gray-700 group flex items-center px-4 py-2 text-sm hover:bg-gray-100"
+              role="menuitem"
+              tabIndex={-1}
+            >
+              <BuildingStorefrontIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+              Dasbor Penjual
+            </button>
+        )}
+         {userRole === 'Admin' && (
+            <button
+              onClick={() => handleNavigate('admin-dashboard')}
+              className="w-full text-left text-gray-700 group flex items-center px-4 py-2 text-sm hover:bg-gray-100"
+              role="menuitem"
+              tabIndex={-1}
+            >
+              <WrenchScrewdriverIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+              Dasbor Admin
+            </button>
+        )}
          <div className="border-t border-gray-100 my-1" />
         <button
           onClick={handleLogout}
           className="w-full text-left text-gray-700 group flex items-center px-4 py-2 text-sm hover:bg-gray-100"
           role="menuitem"
           tabIndex={-1}
-          id="user-menu-item-2"
         >
           <ArrowLeftOnRectangleIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
           Keluar

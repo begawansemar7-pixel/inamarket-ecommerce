@@ -68,3 +68,12 @@ export interface Conversation {
     messages: Message[];
     unreadByBuyer: boolean;
 }
+
+export interface SellerApplication {
+  id: number;
+  storeName: string;
+  ownerName: string;
+  email: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedDate: string;
+}

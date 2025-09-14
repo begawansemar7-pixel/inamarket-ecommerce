@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { ToastMessage } from '../types';
-import { PaperAirplaneIcon } from './icons/Icons';
+import { PaperAirplaneIcon, FacebookIcon, InstagramIcon, XIcon } from './icons/Icons';
 
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
 
 interface FooterProps {
     onNavigate: (page: Page) => void;
@@ -75,9 +75,15 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, addToast }) => {
                 </button>
             </form>
             <div className="flex space-x-4 mt-4">
-              <a href="#" className="text-gray-400 hover:text-white">FB</a>
-              <a href="#" className="text-gray-400 hover:text-white">IG</a>
-              <a href="#" className="text-gray-400 hover:text-white">TW</a>
+              <a href="#" className="text-gray-400 hover:text-white" aria-label="Facebook">
+                <FacebookIcon className="w-6 h-6" />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white" aria-label="Instagram">
+                <InstagramIcon className="w-6 h-6" />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white" aria-label="X (formerly Twitter)">
+                <XIcon className="w-6 h-6" />
+              </a>
             </div>
           </div>
         </div>

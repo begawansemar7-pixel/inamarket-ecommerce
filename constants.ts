@@ -1,4 +1,4 @@
-import { Product, ShippingOption } from './types';
+import { Product, ShippingOption, SellerApplication } from './types';
 import {
     FoodAndDrinkIcon,
     FashionWomanIcon,
@@ -312,4 +312,11 @@ export const BOTTOM_CAROUSEL_SLIDES = [
     actionType: 'navigate',
     actionPayload: 'contact'
   }
+];
+
+export const SELLER_APPLICATIONS: SellerApplication[] = [
+  { id: 1, storeName: 'Warung Kopi Senja', ownerName: 'Ahmad Subarjo', email: 'ahmad.s@example.com', status: 'pending', submittedDate: '2024-08-10' },
+  { id: 2, storeName: 'Batik Cirebonan', ownerName: 'Retno Wulandari', email: 'retno.w@example.com', status: 'pending', submittedDate: '2024-08-09' },
+  { id: 3, storeName: 'Keripik Maicih Asli', ownerName: 'Dimas Anggara', email: 'dimas.a@example.com', status: 'approved', submittedDate: '2024-08-05' },
+  { id: 4, storeName: 'Toko Herbal Alami', ownerName: 'Siti Nurhaliza', email: 'siti.n@example.com', status: 'rejected', submittedDate: '2024-08-02' },
 ];

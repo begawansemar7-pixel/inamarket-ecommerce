@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="INAMarket adalah platform e-commerce modern untuk Usaha Mikro, Kecil, dan Menengah (UMKM) Indonesia. Temukan produk lokal berkualitas dan dukung pertumbuhan ekonomi kreatif." />
+    <meta name="keywords" content="UMKM, produk lokal, e-commerce, marketplace, Indonesia, kerajinan tangan, kuliner, fashion, Inamarket" />
+    <meta name="author" content="INAMarket" />
     <title>INAMarket - UMKM Indonesia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
@@ -92,6 +95,16 @@
   }
   .animate-auth-modal-enter {
     animation: auth-modal-enter 0.2s ease-out forwards;
+  }
+
+  /* Animation for cart item updates */
+  @keyframes flash-bg {
+    0% { background-color: #f0fdfa; } /* bg-teal-50 */
+    50% { background-color: #f0fdfa; }
+    100% { background-color: transparent; }
+  }
+  .animate-flash-bg {
+    animation: flash-bg 0.6s ease-out;
   }
 
   .range-slider-thumb {

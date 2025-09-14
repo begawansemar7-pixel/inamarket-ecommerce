@@ -5,6 +5,7 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import AdminLoginPage from './pages/AdminLoginPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import SellModal from './components/SellModal';
 import AuthPage from './pages/AuthPage';
 import ProductDetailModal from './components/ProductDetailModal';
@@ -30,7 +31,7 @@ import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 import ContactCenterFab from './components/ContactCenterFab';
 import InaContactCenter from './components/InaContactCenter';
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
 type UserRole = 'Buyer' | 'Seller' | 'Admin';
 
 const App: React.FC = () => {
@@ -247,6 +248,8 @@ const App: React.FC = () => {
         addToast('success', `Berhasil masuk sebagai ${role}!`);
         if (role === 'Seller') {
             setPage('dashboard');
+        } else if (role === 'Admin') {
+            setPage('admin-dashboard');
         }
     };
     
@@ -441,6 +444,12 @@ const App: React.FC = () => {
                 }
                 handleNavigate('home'); // Redirect if not authorized
                 return null;
+            case 'admin-dashboard':
+                 if (isAuthenticated && userRole === 'Admin') {
+                    return <AdminDashboardPage />;
+                }
+                handleNavigate('home'); // Redirect if not authorized
+                return null;
             case 'admin-login':
                 return <AdminLoginPage onLogin={handleLoginSuccess} onBackToHome={() => handleNavigate('home')} />;
             case 'about':
@@ -464,9 +473,10 @@ const App: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-white">
-            {page !== 'admin-login' && (
+            {page !== 'admin-login' && page !== 'admin-dashboard' && (
                  <Header
                     isAuthenticated={isAuthenticated}
+                    userRole={userRole}
                     onLoginClick={() => setAuthModalOpen(true)}
                     onSellClick={handleSellClick}
                     onNavigate={handleNavigate}
@@ -482,7 +492,7 @@ const App: React.FC = () => {
                 {renderPage()}
             </main>
             
-            {page !== 'admin-login' && <Footer onNavigate={handleNavigate} addToast={addToast} />}
+            {page !== 'admin-login' && page !== 'admin-dashboard' && <Footer onNavigate={handleNavigate} addToast={addToast} />}
 
             {/* Mobile Filter Overlay */}
             {isFilterOpen && (
