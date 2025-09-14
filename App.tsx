@@ -75,6 +75,11 @@ const App: React.FC = () => {
     const [viewedCategories, setViewedCategories] = useState<Record<string, number>>({});
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
 
+    // Memoize the cart item count calculation for consistency and performance
+    const totalCartItemCount = useMemo(() => {
+        return cartItems.reduce((acc, item) => acc + item.quantity, 0);
+    }, [cartItems]);
+
     // Memoized list for featured products
     const featuredProducts = useMemo(() => {
         return [...allProducts]
@@ -87,6 +92,15 @@ const App: React.FC = () => {
         return allProducts.filter(p => p.originalPrice && p.originalPrice > p.price);
     }, [allProducts]);
     
+    // Memoized list for new products
+    const newProducts = useMemo(() => {
+        return [...allProducts]
+            .sort((a, b) => b.id - a.id) // Sort by newest ID
+            .filter(p => !featuredProducts.some(fp => fp.id === p.id))
+            .filter(p => !promoProducts.some(pp => pp.id === p.id))
+            .slice(0, 8);
+    }, [allProducts, featuredProducts, promoProducts]);
+
     const activeFilterCount = useMemo(() => {
         const isCategoryActive = filters.category !== 'all';
         const isLocationActive = filters.location !== 'all';
@@ -162,6 +176,7 @@ const App: React.FC = () => {
             .filter(p => p.category === mostViewedCategory)
             .filter(p => !featuredProducts.some(fp => fp.id === p.id))
             .filter(p => !promoProducts.some(pp => pp.id === p.id))
+            .filter(p => !newProducts.some(np => np.id === p.id))
             .sort(() => 0.5 - Math.random()) // Shuffle
             .slice(0, 4); // Take up to 4 recommendations
 
@@ -175,7 +190,7 @@ const App: React.FC = () => {
                 .slice(0, 4);
             setRecommendedProducts(fallbackRecommendations);
         }
-    }, [viewedCategories, allProducts, featuredProducts, promoProducts]);
+    }, [viewedCategories, allProducts, featuredProducts, promoProducts, newProducts]);
 
     const handleFilterChange = (filterName: keyof typeof filters, value: any) => {
         setFilters(prev => ({...prev, [filterName]: value}));
@@ -193,6 +208,15 @@ const App: React.FC = () => {
 
     const resetFilters = () => {
         setFilters({ category: 'all', price: [0, 1500000], location: 'all' });
+    };
+
+    const handleViewDetails = (product: Product) => {
+        setSelectedProduct(product);
+        // Update browsing history for recommendations
+        setViewedCategories(prev => ({
+            ...prev,
+            [product.category]: (prev[product.category] || 0) + 1,
+        }));
     };
 
     // Toast helper function
@@ -301,12 +325,21 @@ const App: React.FC = () => {
         }, 1500);
     };
 
+    const handleSellClick = () => {
+        if (isAuthenticated && userRole === 'Seller') {
+            setSellModalOpen(true);
+        } else {
+            addToast('info', 'Anda harus masuk sebagai penjual untuk menambahkan produk.');
+            setAuthModalOpen(true);
+        }
+    };
+
     const renderPage = () => {
         switch(page) {
             case 'home':
                 return (
                     <>
-                        <Hero />
+                        <Hero onNavigate={handleNavigate} />
                         <CollapsibleCategorySection title="Kategori Pilihan" bgColorClass="bg-white" defaultOpen={true}>
                             <CategoryGrid categories={ALL_CATEGORIES} onCategorySelect={handleCategorySelect} />
                         </CollapsibleCategorySection>
@@ -315,22 +348,31 @@ const App: React.FC = () => {
                             <section className="py-8 bg-gray-50">
                               <div className="container mx-auto px-4">
                                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Produk Promosi</h2>
-                                <ProductGrid products={promoProducts} onViewDetails={setSelectedProduct} />
+                                <ProductGrid products={promoProducts} onViewDetails={handleViewDetails} />
                               </div>
                             </section>
                         )}
                         <section className="py-8 bg-white">
                           <div className="container mx-auto px-4">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">Produk Unggulan</h2>
-                            <ProductGrid products={featuredProducts} onViewDetails={setSelectedProduct} />
+                            <ProductGrid products={featuredProducts} onViewDetails={handleViewDetails} />
                           </div>
                         </section>
                         
-                        {recommendedProducts.length > 0 && (
+                        {newProducts.length > 0 && (
                             <section className="py-8 bg-gray-50">
                               <div className="container mx-auto px-4">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Produk Terbaru</h2>
+                                <ProductGrid products={newProducts} onViewDetails={handleViewDetails} />
+                              </div>
+                            </section>
+                        )}
+                        
+                        {recommendedProducts.length > 0 && (
+                            <section className="py-8 bg-white">
+                              <div className="container mx-auto px-4">
                                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Rekomendasi untuk Anda</h2>
-                                <ProductGrid products={recommendedProducts} onViewDetails={setSelectedProduct} />
+                                <ProductGrid products={recommendedProducts} onViewDetails={handleViewDetails} />
                               </div>
                             </section>
                         )}
@@ -373,7 +415,7 @@ const App: React.FC = () => {
                                 </div>
                                 <div className="lg:col-span-3">
                                    {filteredProducts.length > 0 ? (
-                                        <ProductGrid products={filteredProducts} onViewDetails={setSelectedProduct} />
+                                        <ProductGrid products={filteredProducts} onViewDetails={handleViewDetails} />
                                    ) : (
                                         <div className="text-center py-16">
                                             <p className="text-gray-600 font-semibold text-lg">Oops! Tidak ada produk yang cocok.</p>
@@ -384,14 +426,15 @@ const App: React.FC = () => {
                              </div>
                           </div>
                         </section>
-                        <BottomCarousel />
+                        <BottomCarousel onNavigate={handleNavigate} onSellClick={handleSellClick} />
                     </>
                 );
             case 'cart':
             case 'profile':
                 return <CartPage items={cartItems} onUpdateQuantity={handleUpdateCartQuantity} onRemoveItem={handleRemoveFromCart} onCheckout={() => handleNavigate('checkout')} onStartShopping={() => handleNavigate('home')}/>;
             case 'checkout':
-                return <CheckoutPage items={cartItems} onBackToHome={() => { setCartItems([]); handleNavigate('home'); addToast('success', 'Pesanan Anda berhasil dibuat!'); }} cartItemCount={cartItems.length} onLogout={handleLogout} isAuthenticated={isAuthenticated} onLoginClick={() => setAuthModalOpen(true)} onNavigate={handleNavigate} unreadMessageCount={unreadMessageCount} onChatClick={() => setChatOpen(true)} />;
+                // Fix: Pass the 'addToast' function to the CheckoutPage component.
+                return <CheckoutPage items={cartItems} onBackToHome={() => { setCartItems([]); handleNavigate('home'); addToast('success', 'Pesanan Anda berhasil dibuat!'); }} cartItemCount={totalCartItemCount} onLogout={handleLogout} isAuthenticated={isAuthenticated} onLoginClick={() => setAuthModalOpen(true)} onNavigate={handleNavigate} unreadMessageCount={unreadMessageCount} onChatClick={() => setChatOpen(true)} addToast={addToast} />;
             case 'dashboard':
                 if (isAuthenticated && userRole === 'Seller') {
                     return <SellerDashboardPage />;
@@ -425,17 +468,10 @@ const App: React.FC = () => {
                  <Header
                     isAuthenticated={isAuthenticated}
                     onLoginClick={() => setAuthModalOpen(true)}
-                    onSellClick={() => {
-                        if (isAuthenticated && userRole === 'Seller') {
-                            setSellModalOpen(true);
-                        } else {
-                            addToast('info', 'Anda harus masuk sebagai penjual untuk menambahkan produk.');
-                            setAuthModalOpen(true);
-                        }
-                    }}
+                    onSellClick={handleSellClick}
                     onNavigate={handleNavigate}
                     activePage={page}
-                    cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+                    cartItemCount={totalCartItemCount}
                     onLogout={handleLogout}
                     unreadMessageCount={unreadMessageCount}
                     onChatClick={() => setChatOpen(!isChatOpen)}
@@ -446,7 +482,7 @@ const App: React.FC = () => {
                 {renderPage()}
             </main>
             
-            {page !== 'admin-login' && <Footer onNavigate={handleNavigate} />}
+            {page !== 'admin-login' && <Footer onNavigate={handleNavigate} addToast={addToast} />}
 
             {/* Mobile Filter Overlay */}
             {isFilterOpen && (

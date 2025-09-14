@@ -25,6 +25,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => 
 
   const isPromo = product.originalPrice && product.originalPrice > product.price;
   const discountPercentage = isPromo ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) : 0;
+  const isLowStock = product.stock !== undefined && product.stock < 5;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
@@ -44,7 +45,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => 
       </div>
       <div className="p-4">
         <p className="text-xs text-gray-500 mb-1">{product.category}</p>
-        <h3 className="text-md font-bold text-gray-800 truncate">
+        {isLowStock && (
+            <div className="my-1">
+                <span className="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                    Stok Hampir Habis
+                </span>
+            </div>
+        )}
+        <h3 className="text-md font-bold text-gray-800 truncate mt-1">
            <button onClick={() => onViewDetails(product)} className="hover:text-primary transition-colors text-left">{product.name}</button>
         </h3>
         
@@ -68,7 +76,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => 
         </div>
       </div>
       {/* Absolute positioned buttons for hover effect */}
-      <div className="absolute top-2 right-2 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute top-2 right-2 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300 ease-out">
           <button className="bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white text-gray-600 hover:text-primary" aria-label="Add to cart">
             <ShoppingCartIcon className="w-5 h-5" />
           </button>

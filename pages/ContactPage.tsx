@@ -10,14 +10,48 @@ interface ContactPageProps {
 const ContactPage: React.FC<ContactPageProps> = ({ addToast }) => {
     const [formData, setFormData] = useState({ name: '', email: '', message: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState({ name: '', email: '', message: '' });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        // Clear error on change for better UX
+        if (errors[name as keyof typeof errors]) {
+          setErrors(prev => ({ ...prev, [name]: '' }));
+        }
     }
+
+    const validateForm = () => {
+        const newErrors = { name: '', email: '', message: '' };
+        let isValid = true;
+        
+        if (!formData.name.trim()) {
+            newErrors.name = 'Nama lengkap tidak boleh kosong.';
+            isValid = false;
+        }
+        
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email tidak boleh kosong.';
+            isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            newErrors.email = 'Format email tidak valid.';
+            isValid = false;
+        }
+
+        if (!formData.message.trim()) {
+            newErrors.message = 'Pesan tidak boleh kosong.';
+            isValid = false;
+        }
+        
+        setErrors(newErrors);
+        return isValid;
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validateForm()) {
+            return;
+        }
         setIsSubmitting(true);
         console.log("Mengirim pesan:", formData);
 
@@ -99,9 +133,9 @@ const ContactPage: React.FC<ContactPageProps> = ({ addToast }) => {
                     autoComplete="name"
                     value={formData.name}
                     onChange={handleChange}
-                    required
-                    className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                    className={`block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ${errors.name ? 'ring-red-500' : 'ring-gray-300'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6`}
                   />
+                  {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
                 </div>
               </div>
               <div className="sm:col-span-2">
@@ -116,9 +150,9 @@ const ContactPage: React.FC<ContactPageProps> = ({ addToast }) => {
                     autoComplete="email"
                     value={formData.email}
                     onChange={handleChange}
-                    required
-                    className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                    className={`block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ${errors.email ? 'ring-red-500' : 'ring-gray-300'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6`}
                   />
+                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
                 </div>
               </div>
               <div className="sm:col-span-2">
@@ -132,9 +166,9 @@ const ContactPage: React.FC<ContactPageProps> = ({ addToast }) => {
                     rows={4}
                     value={formData.message}
                     onChange={handleChange}
-                    required
-                    className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                    className={`block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ${errors.message ? 'ring-red-500' : 'ring-gray-300'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6`}
                   />
+                  {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message}</p>}
                 </div>
               </div>
             </div>

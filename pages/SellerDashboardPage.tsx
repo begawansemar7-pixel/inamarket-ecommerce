@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Product } from '../types';
 import { PRODUCTS } from '../constants'; // For dummy data
 import ProductManagementTable from '../components/ProductManagementTable';
 import AddProductModal from '../components/AddProductModal';
-import { PlusCircleIcon } from '../components/icons/Icons';
+import { PlusCircleIcon, InformationCircleIcon, CloseIcon } from '../components/icons/Icons';
 
 const SellerDashboardPage: React.FC = () => {
   // For demonstration, we'll filter products for a specific seller
@@ -12,6 +12,23 @@ const SellerDashboardPage: React.FC = () => {
   );
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // State for the low stock notification
+  const [showLowStockAlert, setShowLowStockAlert] = useState(false);
+
+  const lowStockProducts = useMemo(() =>
+    myProducts.filter(p => p.stock !== undefined && p.stock < 5),
+    [myProducts]
+  );
+
+  useEffect(() => {
+    if (lowStockProducts.length > 0) {
+      setShowLowStockAlert(true);
+    } else {
+      setShowLowStockAlert(false); // Hide if stock is replenished
+    }
+  }, [lowStockProducts]);
+
 
   const handleAddProduct = (newProduct: Omit<Product, 'id'>) => {
     const productToAdd: Product = {
@@ -62,6 +79,33 @@ const SellerDashboardPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
+       {/* Low Stock Notification */}
+       {showLowStockAlert && (
+        <div className="fixed top-24 right-4 z-50 w-full max-w-sm bg-yellow-50 border border-yellow-200 rounded-lg shadow-lg p-4 animate-step-in">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <InformationCircleIcon className="h-6 w-6 text-yellow-500" />
+            </div>
+            <div className="ml-3 w-0 flex-1">
+              <p className="text-sm font-bold text-yellow-800">Peringatan Stok Rendah</p>
+              <p className="mt-1 text-sm text-yellow-700">
+                Produk berikut perlu segera diisi ulang: {lowStockProducts.map(p => p.name).join(', ')}.
+              </p>
+            </div>
+            <div className="ml-4 flex-shrink-0">
+              <button
+                onClick={() => setShowLowStockAlert(false)}
+                className="inline-flex rounded-md bg-yellow-50 p-1.5 text-yellow-500 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-offset-2 focus:ring-offset-yellow-50"
+                aria-label="Tutup notifikasi"
+              >
+                <span className="sr-only">Tutup</span>
+                <CloseIcon className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Dasbor Penjual</h1>
         <p className="text-gray-500">Kelola produk, pesanan, dan lihat performa toko Anda.</p>

@@ -1,4 +1,3 @@
-
 import { Product, ShippingOption } from './types';
 import {
     FoodAndDrinkIcon,
@@ -20,55 +19,6 @@ import {
     SpeakerWaveIcon,
     CarIcon
 } from './components/icons/Icons';
-
-export const CATEGORIES = [
-  'Makanan & Minuman',
-  'Fashion Wanita',
-  'Fashion Pria',
-  'Kesehatan & Kecantikan',
-  'Rumah & Taman',
-  'Elektronik',
-  'Kerajinan Tangan',
-  'Otomotif',
-  'Mainan & Hobi',
-];
-
-export const CATEGORIES_WITH_ICONS = [
-    { name: 'Makanan & Minuman', icon: FoodAndDrinkIcon },
-    { name: 'Fashion Wanita', icon: FashionWomanIcon },
-    { name: 'Fashion Pria', icon: FashionManIcon },
-    { name: 'Kesehatan & Kecantikan', icon: HealthAndBeautyIcon },
-    { name: 'Rumah & Taman', icon: HomeAndGardenIcon },
-    { name: 'Elektronik', icon: ElectronicsIcon },
-    { name: 'Kerajinan Tangan', icon: HandicraftIcon },
-    { name: 'Otomotif', icon: AutomotiveIcon },
-    { name: 'Mainan & Hobi', icon: ToysAndHobbiesIcon },
-];
-
-export const SERVICE_CATEGORIES_WITH_ICONS = [
-    { name: 'Jasa Jahit', icon: SewingMachineIcon },
-    { name: 'Servis Elektronik', icon: WrenchIcon },
-    { name: 'Desain Grafis', icon: PenToolIcon },
-    { name: 'Jasa Fotografi', icon: CameraIcon },
-    { name: 'Katering', icon: FoodTrayIcon },
-];
-
-export const RENTAL_CATEGORIES_WITH_ICONS = [
-    { name: 'Sewa Alat Pesta', icon: PartyPopperIcon },
-    { name: 'Sewa Kamera', icon: CameraIcon },
-    { name: 'Sewa Kostum', icon: CostumeIcon },
-    { name: 'Sewa Sound System', icon: SpeakerWaveIcon },
-    { name: 'Sewa Mobil', icon: CarIcon },
-];
-
-export const ALL_CATEGORIES = [
-    ...CATEGORIES_WITH_ICONS,
-    ...SERVICE_CATEGORIES_WITH_ICONS,
-    ...RENTAL_CATEGORIES_WITH_ICONS,
-];
-
-
-export const LOCATIONS = ['Jakarta', 'Bandung', 'Surabaya', 'Yogyakarta', 'Bali', 'Medan'];
 
 export const PRODUCTS: Product[] = [
     {
@@ -274,6 +224,59 @@ export const PRODUCTS: Product[] = [
     },
 ];
 
+const CATEGORIES_WITH_ICONS = [
+    { name: 'Makanan & Minuman', icon: FoodAndDrinkIcon },
+    { name: 'Fashion Wanita', icon: FashionWomanIcon },
+    { name: 'Fashion Pria', icon: FashionManIcon },
+    { name: 'Kesehatan & Kecantikan', icon: HealthAndBeautyIcon },
+    { name: 'Rumah & Taman', icon: HomeAndGardenIcon },
+    { name: 'Elektronik', icon: ElectronicsIcon },
+    { name: 'Kerajinan Tangan', icon: HandicraftIcon },
+    { name: 'Otomotif', icon: AutomotiveIcon },
+    { name: 'Mainan & Hobi', icon: ToysAndHobbiesIcon },
+];
+
+const SERVICE_CATEGORIES_WITH_ICONS = [
+    { name: 'Jasa Jahit', icon: SewingMachineIcon },
+    { name: 'Servis Elektronik', icon: WrenchIcon },
+    { name: 'Desain Grafis', icon: PenToolIcon },
+    { name: 'Jasa Fotografi', icon: CameraIcon },
+    { name: 'Katering', icon: FoodTrayIcon },
+];
+
+const RENTAL_CATEGORIES_WITH_ICONS = [
+    { name: 'Sewa Alat Pesta', icon: PartyPopperIcon },
+    { name: 'Sewa Kamera', icon: CameraIcon },
+    { name: 'Sewa Kostum', icon: CostumeIcon },
+    { name: 'Sewa Sound System', icon: SpeakerWaveIcon },
+    { name: 'Sewa Mobil', icon: CarIcon },
+];
+
+// Combine all category definitions
+const combinedCategories = [
+    ...CATEGORIES_WITH_ICONS,
+    ...SERVICE_CATEGORIES_WITH_ICONS,
+    ...RENTAL_CATEGORIES_WITH_ICONS,
+];
+
+// Calculate popularity based on product count
+const categoryCounts: { [key: string]: number } = {};
+PRODUCTS.forEach(product => {
+    categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
+});
+
+// Sort the combined categories by popularity and export
+export const ALL_CATEGORIES = combinedCategories.sort((a, b) => {
+    const countA = categoryCounts[a.name] || 0;
+    const countB = categoryCounts[b.name] || 0;
+    return countB - countA;
+});
+
+// Derive the simple CATEGORIES array from the sorted list for consistency
+export const CATEGORIES = ALL_CATEGORIES.map(cat => cat.name);
+
+
+export const LOCATIONS = ['Jakarta', 'Bandung', 'Surabaya', 'Yogyakarta', 'Bali', 'Medan'];
 
 export const SHIPPING_OPTIONS: ShippingOption[] = [
   { id: 'standard', name: 'Reguler', price: 10000, estimatedDelivery: '2-4 hari' },
@@ -288,6 +291,8 @@ export const BOTTOM_CAROUSEL_SLIDES = [
     title: "Jadilah Penjual di INAMarket",
     subtitle: "Buka toko Anda dan jangkau jutaan pelanggan di seluruh Indonesia. Gratis!",
     buttonText: "Mulai Berjualan",
+    actionType: 'sell',
+    actionPayload: null
   },
   {
     id: 2,
@@ -295,6 +300,8 @@ export const BOTTOM_CAROUSEL_SLIDES = [
     title: "Pengiriman Cepat & Terpercaya",
     subtitle: "Kami bekerja sama dengan layanan logistik terbaik untuk mengantar pesanan Anda.",
     buttonText: "Lacak Pesanan",
+    actionType: 'navigate',
+    actionPayload: 'profile'
   },
   {
     id: 3,
@@ -302,5 +309,7 @@ export const BOTTOM_CAROUSEL_SLIDES = [
     title: "Butuh Bantuan? Kami Siap Melayani",
     subtitle: "Tim customer service kami siap membantu Anda 24/7.",
     buttonText: "Hubungi Kami",
+    actionType: 'navigate',
+    actionPayload: 'contact'
   }
 ];

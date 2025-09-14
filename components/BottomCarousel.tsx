@@ -1,24 +1,42 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons/Icons';
-import { BOTTOM_CAROUSEL_SLIDES as slides } from '../constants';
+import { BOTTOM_CAROUSEL_SLIDES as slidesData } from '../constants';
 
-const BottomCarousel: React.FC = () => {
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+
+interface BottomCarouselProps {
+    onNavigate: (page: Page) => void;
+    onSellClick: () => void;
+}
+
+const BottomCarousel: React.FC<BottomCarouselProps> = ({ onNavigate, onSellClick }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  
+  // Cast slides data to include action types for TypeScript
+  const slides = slidesData as (typeof slidesData[0] & { actionType: string; actionPayload: Page | null })[];
 
   const goToPrevious = useCallback(() => {
     const isFirstSlide = currentIndex === 0;
     const newIndex = isFirstSlide ? slides.length - 1 : currentIndex - 1;
     setCurrentIndex(newIndex);
-  }, [currentIndex]);
+  }, [currentIndex, slides.length]);
 
   const goToNext = useCallback(() => {
     const isLastSlide = currentIndex === slides.length - 1;
     const newIndex = isLastSlide ? 0 : currentIndex + 1;
     setCurrentIndex(newIndex);
-  }, [currentIndex]);
+  }, [currentIndex, slides.length]);
 
   const goToSlide = (slideIndex: number) => {
     setCurrentIndex(slideIndex);
+  };
+
+  const handleButtonClick = (slide: typeof slides[0]) => {
+      if (slide.actionType === 'navigate' && slide.actionPayload) {
+          onNavigate(slide.actionPayload);
+      } else if (slide.actionType === 'sell') {
+          onSellClick();
+      }
   };
 
   useEffect(() => {
@@ -49,11 +67,12 @@ const BottomCarousel: React.FC = () => {
               <p className="mt-3 text-base md:text-lg max-w-2xl mx-auto animate-fade-in-up delay-300">
                 {slide.subtitle}
               </p>
-              <a href="#">
-                <button className="mt-6 bg-primary hover:bg-primary-dark text-white font-bold py-2 px-6 rounded-full text-base transition-transform transform hover:scale-105 animate-fade-in-up delay-500">
+              <button 
+                onClick={() => handleButtonClick(slide)}
+                className="mt-6 bg-primary hover:bg-primary-dark text-white font-bold py-2 px-6 rounded-full text-base transition-transform transform hover:scale-105 animate-fade-in-up delay-500"
+              >
                   {slide.buttonText}
-                </button>
-              </a>
+              </button>
             </div>
           </div>
         </div>

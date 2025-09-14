@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCartIcon, SparklesIcon, UserCircleIcon, SearchIcon, ChatBubbleLeftRightIcon } from './icons/Icons';
 import ProfileDropdown from './ProfileDropdown';
@@ -47,10 +46,31 @@ const Header: React.FC<HeaderProps> = ({
     return (
         <header className="bg-white shadow-sm sticky top-0 z-40">
             <div className="container mx-auto px-4">
-                <div className="flex justify-between items-center py-4">
+                <div className="flex justify-between items-center py-3">
                     {/* Logo */}
-                    <div onClick={() => onNavigate('home')} className="cursor-pointer">
-                        <h1 className="text-2xl font-bold text-primary">INAMarket</h1>
+                    <div onClick={() => onNavigate('home')} className="cursor-pointer flex items-center">
+                        <svg
+                            height="38"
+                            viewBox="0 0 175 38"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-labelledby="logoTitle"
+                            role="img"
+                        >
+                            <title id="logoTitle">INAMarket Logo</title>
+                            <defs>
+                                <linearGradient id="logoIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#2dd4bf" />
+                                    <stop offset="100%" stop-color="#0f766e" />
+                                </linearGradient>
+                            </defs>
+                            <g transform="translate(2, 2)">
+                                <path d="M34,17 A17,17 0 1,1 17,0 L17,6 A11,11 0 1,0 28,17 Z" fill="url(#logoIconGradient)" />
+                                <circle cx="17" cy="17" r="5" fill="url(#logoIconGradient)" />
+                            </g>
+                            <text x="48" y="29" fontFamily="Inter, sans-serif" fontSize="24" fontWeight="800" fill="#1e293b">
+                                INAMarket
+                            </text>
+                        </svg>
                     </div>
                     
                     {/* Search Bar */}

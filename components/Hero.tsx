@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons/Icons';
 
+type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+
+interface HeroProps {
+    onNavigate: (page: Page) => void;
+}
+
 const slides = [
   {
     id: 1,
@@ -8,7 +14,8 @@ const slides = [
     title: "Produk Unggulan Minggu Ini",
     subtitle: "Dapatkan kerajinan tangan dan kuliner terbaik yang dipilih khusus untuk Anda.",
     buttonText: "Lihat Koleksi",
-    buttonLink: "#",
+    actionType: 'scroll',
+    actionPayload: 'product-section'
   },
   {
     id: 2,
@@ -16,7 +23,8 @@ const slides = [
     title: "Promo Spesial Kemerdekaan",
     subtitle: "Diskon hingga 79% untuk produk fashion dan aksesoris lokal. Rayakan Indonesia!",
     buttonText: "Belanja Sekarang",
-    buttonLink: "#",
+    actionType: 'scroll',
+    actionPayload: 'product-section'
   },
   {
     id: 3,
@@ -24,11 +32,12 @@ const slides = [
     title: "Dukung UMKM Lokal",
     subtitle: "Setiap pembelian Anda membantu pengrajin dan produsen kecil di seluruh nusantara.",
     buttonText: "Pelajari Lebih Lanjut",
-    buttonLink: "#",
+    actionType: 'navigate',
+    actionPayload: 'about' as Page
   }
 ];
 
-const Hero: React.FC = () => {
+const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToPrevious = useCallback(() => {
@@ -46,6 +55,15 @@ const Hero: React.FC = () => {
   const goToSlide = (slideIndex: number) => {
     setCurrentIndex(slideIndex);
   };
+
+  const handleButtonClick = (slide: typeof slides[0]) => {
+      if (slide.actionType === 'scroll' && slide.actionPayload) {
+          document.getElementById(slide.actionPayload)?.scrollIntoView({ behavior: 'smooth' });
+      } else if (slide.actionType === 'navigate') {
+          onNavigate(slide.actionPayload as Page);
+      }
+  };
+
 
   useEffect(() => {
     const slider = setTimeout(() => goToNext(), 5000); // Auto-play every 5 seconds
@@ -75,11 +93,12 @@ const Hero: React.FC = () => {
               <p className="mt-4 text-lg md:text-xl max-w-2xl mx-auto animate-fade-in-up delay-300">
                 {slide.subtitle}
               </p>
-              <a href={slide.buttonLink}>
-                <button className="mt-8 bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105 animate-fade-in-up delay-500">
+              <button
+                onClick={() => handleButtonClick(slide)}
+                className="mt-8 bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105 animate-fade-in-up delay-500"
+              >
                   {slide.buttonText}
-                </button>
-              </a>
+              </button>
             </div>
           </div>
         </div>

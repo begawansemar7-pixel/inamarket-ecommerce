@@ -18,37 +18,57 @@ const CartItemRow: React.FC<{
     onUpdateQuantity: (id: number, quantity: number) => void;
     onRemoveItem: (id: number) => void;
 }> = ({ item, onUpdateQuantity, onRemoveItem }) => (
-    <div className="flex items-center justify-between py-4 border-b">
-        <div className="flex items-center space-x-4 flex-1">
-            <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
-            <div>
+    <div className="flex flex-col sm:grid sm:grid-cols-6 sm:gap-4 sm:items-center py-4 border-b">
+        {/* Product Info (Combined with mobile layout) */}
+        <div className="col-span-3 flex items-center space-x-4">
+            <img src={item.imageUrl} alt={item.name} className="w-20 h-20 rounded-md object-cover flex-shrink-0" />
+            <div className="flex-grow">
                 <p className="font-semibold text-gray-800">{item.name}</p>
-                <p className="text-sm text-gray-500">{item.seller}</p>
+                <p className="text-sm text-gray-500">{formatRupiah(item.price)}</p>
+                {/* Mobile-only subtotal */}
+                <p className="sm:hidden text-base font-bold text-primary-dark mt-2">
+                    {formatRupiah(item.price * item.quantity)}
+                </p>
             </div>
         </div>
-        <div className="flex items-center space-x-4 sm:space-x-6">
-            <p className="text-md font-semibold w-24 text-right hidden sm:block">{formatRupiah(item.price)}</p>
-             <div className="flex items-center">
+
+        {/* Quantity Controls & Remove (Combined for mobile) */}
+        <div className="col-span-3 flex sm:grid sm:grid-cols-3 sm:gap-4 items-center justify-between mt-4 sm:mt-0">
+            {/* Quantity */}
+            <div className="sm:col-span-1 flex items-center sm:justify-center">
                 <button 
                     onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
                     disabled={item.quantity <= 1}
-                    className="border rounded-l-md px-2 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                    className="border rounded-l-md px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
                     aria-label="Decrease quantity"
-                >-</button>
-                <span className="border-t border-b px-3 py-1 text-center font-medium text-gray-800 w-12">{item.quantity}</span>
+                >
+                    &ndash;
+                </button>
+                <span className="border-t border-b px-3 py-1.5 text-center font-medium text-gray-800 w-12">{item.quantity}</span>
                 <button 
                     onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                    className="border rounded-r-md px-2 py-1 text-gray-600 hover:bg-gray-100"
+                    className="border rounded-r-md px-3 py-1.5 text-gray-600 hover:bg-gray-100"
                     aria-label="Increase quantity"
-                >+</button>
+                >
+                    +
+                </button>
             </div>
-            <p className="text-lg font-bold text-primary-dark w-28 text-right">{formatRupiah(item.price * item.quantity)}</p>
-            <button onClick={() => onRemoveItem(item.id)} className="text-gray-400 hover:text-red-600" aria-label={`Remove ${item.name}`}>
-                <TrashIcon className="w-5 h-5" />
-            </button>
+
+            {/* Subtotal (Desktop) */}
+            <p className="hidden sm:block sm:col-span-1 text-lg font-bold text-primary-dark text-right">
+                {formatRupiah(item.price * item.quantity)}
+            </p>
+
+            {/* Remove Button */}
+            <div className="sm:col-span-1 flex justify-end">
+                <button onClick={() => onRemoveItem(item.id)} className="text-gray-400 hover:text-red-600 p-1" aria-label={`Remove ${item.name}`}>
+                    <TrashIcon className="w-5 h-5" />
+                </button>
+            </div>
         </div>
     </div>
-)
+);
+
 
 const TransactionHistoryItem: React.FC<{item: Product & { date: string, status: 'Selesai' | 'Dikirim'}}> = ({ item }) => (
      <div className="flex items-center justify-between py-4 border-b">
@@ -105,13 +125,22 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
 
                 {items.length > 0 ? (
                     <div>
+                        {/* Cart Header for Desktop */}
+                        <div className="hidden sm:grid grid-cols-6 gap-4 items-center text-xs font-semibold text-gray-500 uppercase py-2 border-b">
+                            <div className="col-span-3">Produk</div>
+                            <div className="col-span-1 text-center">Jumlah</div>
+                            <div className="col-span-1 text-right">Subtotal</div>
+                            <div className="col-span-1 text-right pr-1">Hapus</div>
+                        </div>
+
                         {items.map(item => <CartItemRow key={item.id} item={item} onUpdateQuantity={onUpdateQuantity} onRemoveItem={onRemoveItem} />)}
-                        <div className="mt-6 flex justify-end items-center space-x-6">
-                            <div>
+                        
+                        <div className="mt-6 flex flex-col sm:flex-row justify-end items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                            <div className="text-right">
                                 <span className="text-gray-600">Subtotal:</span>
                                 <p className="text-2xl font-bold text-gray-800">{formatRupiah(subtotal)}</p>
                             </div>
-                            <button onClick={onCheckout} className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-md text-lg transition-colors">
+                            <button onClick={onCheckout} className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-md text-lg transition-colors shadow-sm hover:shadow-md">
                                 Checkout
                             </button>
                         </div>

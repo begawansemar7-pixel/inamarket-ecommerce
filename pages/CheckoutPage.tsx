@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Address, ShippingOption, CartItem } from '../types';
+import { Address, ShippingOption, CartItem, ToastMessage } from '../types';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CheckoutProgress from '../components/checkout/CheckoutProgress';
@@ -22,6 +22,7 @@ interface CheckoutPageProps {
   onNavigate: (page: Page) => void;
   unreadMessageCount: number;
   onChatClick: () => void;
+  addToast: (type: ToastMessage['type'], message: string) => void;
 }
 
 // Fix: Defined CheckoutStep type which was causing a compilation error.
@@ -36,7 +37,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
     onLoginClick,
     onNavigate,
     unreadMessageCount,
-    onChatClick
+    onChatClick,
+    addToast
 }) => {
   const [step, setStep] = useState<CheckoutStep>('address');
   const [address, setAddress] = useState<Address | null>(null);
@@ -121,8 +123,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </div>
         </div>
       </main>
-      {/* Fix: Passed the required 'onNavigate' prop to the Footer component. */}
-      <Footer onNavigate={onNavigate} />
+      {/* Fix: Passed the required 'addToast' prop to the Footer component. */}
+      <Footer onNavigate={onNavigate} addToast={addToast} />
     </div>
   );
 };

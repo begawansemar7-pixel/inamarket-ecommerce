@@ -4,7 +4,7 @@ type SVGProps = React.SVGProps<SVGSVGElement>;
 
 export const ShoppingCartIcon: React.FC<SVGProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c.51 0 .962-.343 1.087-.835l1.823-6.836A1.125 1.125 0 0018.344 6H5.25L5.25 6H4.125" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c.51 0 .962.344 1.087.835l.383 1.437M7.5 14.25L5.106 5.162A1.125 1.125 0 016.227 4h11.546a1.125 1.125 0 011.121 1.162l-2.39 9.115M15.75 21a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM7.5 21a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
   </svg>
 );
 
@@ -27,9 +27,9 @@ export const SearchIcon: React.FC<SVGProps> = (props) => (
 );
 
 export const ChatBubbleLeftRightIcon: React.FC<SVGProps> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.72-3.72a1.125 1.125 0 00-1.59.022l-1.17 1.17-1.17-1.17a1.125 1.125 0 00-1.59-.022l-3.72 3.72-1.98-.099a2.25 2.25 0 01-2.25-2.25v-4.286c0-.97.616-1.813 1.5-2.097m14.25 0a2.25 2.25 0 00-2.25-2.25H5.25a2.25 2.25 0 00-2.25 2.25m14.25 0-3.72-3.72a.75.75 0 00-1.06-.022L12 3.75l-1.48-1.48a.75.75 0 00-1.06.022L5.73 5.97m14.25 0l-3.72 3.72" />
-  </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+    </svg>
 );
 
 export const ChevronLeftIcon: React.FC<SVGProps> = (props) => (
