@@ -103,8 +103,8 @@ Struktur: 1 paragraf pembuka, beberapa bullet points, 1 paragraf penutup.`;
   };
 
   const handleSuggestPrice = async () => {
-    if (!productData.name || !productData.category) {
-        setAiError('Harap isi nama produk dan kategori terlebih dahulu.');
+    if (!productData.name || !productData.category || !productData.description) {
+        setAiError('Harap isi nama produk, kategori, dan deskripsi terlebih dahulu.');
         return;
     }
     setIsSuggestingPrice(true);
@@ -157,7 +157,7 @@ Struktur: 1 paragraf pembuka, beberapa bullet points, 1 paragraf penutup.`;
                   <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Harga (Rp)</label>
                   <div className="relative">
                     <input type="number" name="price" id="price" value={productData.price} onChange={handleChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" />
-                     <button type="button" onClick={handleSuggestPrice} disabled={isSuggestingPrice || !productData.name || !productData.category} className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-2 py-1 rounded disabled:opacity-50">
+                     <button type="button" onClick={handleSuggestPrice} disabled={isSuggestingPrice || !productData.name || !productData.category || !productData.description} className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-2 py-1 rounded disabled:opacity-50">
                         {isSuggestingPrice ? <Spinner className="w-4 h-4" /> : <SparklesIcon className="w-4 h-4 mr-1"/>}
                         Saran
                     </button>

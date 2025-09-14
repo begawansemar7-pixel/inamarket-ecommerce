@@ -1,4 +1,4 @@
-import { Product, ShippingOption, SellerApplication, ServiceOffering, HeroSlide } from './types';
+import { Product, ShippingOption, SellerApplication, ServiceOffering, HeroSlide, BlogPost } from './types';
 import {
     FoodAndDrinkIcon,
     FashionWomanIcon,
@@ -394,4 +394,58 @@ export const SELLER_APPLICATIONS: SellerApplication[] = [
   { id: 2, storeName: 'Batik Cirebonan', ownerName: 'Retno Wulandari', email: 'retno.w@example.com', status: 'pending', submittedDate: '2024-08-09' },
   { id: 3, storeName: 'Keripik Maicih Asli', ownerName: 'Dimas Anggara', email: 'dimas.a@example.com', status: 'approved', submittedDate: '2024-08-05' },
   { id: 4, storeName: 'Toko Herbal Alami', ownerName: 'Siti Nurhaliza', email: 'siti.n@example.com', status: 'rejected', submittedDate: '2024-08-02' },
+];
+
+export const BLOG_POSTS: BlogPost[] = [
+  {
+    id: 1,
+    title: '5 Tips Fotografi Produk Menggunakan Smartphone untuk Penjual UMKM',
+    href: '#',
+    description:
+      'Tingkatkan daya tarik visual produk Anda tanpa perlu peralatan mahal. Pelajari trik sederhana untuk menghasilkan foto produk yang jernih dan profesional hanya dengan kamera ponsel Anda.',
+    imageUrl: 'https://picsum.photos/seed/blog1/600/400',
+    date: '10 Agu 2024',
+    datetime: '2024-08-10',
+    category: { title: 'Tips & Trik', href: '#' },
+    author: {
+      name: 'Tim INAMarket',
+      role: 'Content Creator',
+      href: '#',
+      imageUrl: 'https://picsum.photos/seed/author1/40/40',
+    },
+  },
+   {
+    id: 2,
+    title: 'Strategi Menentukan Harga Jual yang Tepat untuk Produk Lokal',
+    href: '#',
+    description:
+      'Menentukan harga yang pas adalah kunci profitabilitas. Kami membahas berbagai strategi, mulai dari cost-plus pricing hingga value-based pricing, untuk membantu Anda menemukan harga terbaik.',
+    imageUrl: 'https://picsum.photos/seed/blog2/600/400',
+    date: '5 Agu 2024',
+    datetime: '2024-08-05',
+    category: { title: 'Bisnis', href: '#' },
+    author: {
+      name: 'Andi Pratama',
+      role: 'Business Analyst',
+      href: '#',
+      imageUrl: 'https://picsum.photos/seed/author2/40/40',
+    },
+  },
+   {
+    id: 3,
+    title: 'Memanfaatkan Media Sosial untuk Pemasaran Produk UMKM Anda',
+    href: '#',
+    description:
+      'Di era digital, media sosial adalah alat pemasaran yang ampuh. Temukan cara efektif membangun brand awareness, berinteraksi dengan pelanggan, dan meningkatkan penjualan melalui platform populer.',
+    imageUrl: 'https://picsum.photos/seed/blog3/600/400',
+    date: '1 Agu 2024',
+    datetime: '2024-08-01',
+    category: { title: 'Marketing', href: '#' },
+    author: {
+      name: 'Dewi Lestari',
+      role: 'Marketing Specialist',
+      href: '#',
+      imageUrl: 'https://picsum.photos/seed/author3/40/40',
+    },
+  },
 ];

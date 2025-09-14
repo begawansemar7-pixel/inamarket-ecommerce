@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCartIcon, SparklesIcon, UserCircleIcon, SearchIcon, ChatBubbleLeftRightIcon, ChevronDownIcon } from './icons/Icons';
+import { ShoppingCartIcon, UserCircleIcon, SearchIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, MenuIcon, CloseIcon, ArrowLeftOnRectangleIcon } from './icons/Icons';
 import ProfileDropdown from './ProfileDropdown';
 
 type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
@@ -9,7 +9,6 @@ interface HeaderProps {
     isAuthenticated: boolean;
     userRole: UserRole | null;
     onLoginClick: () => void;
-    onSellClick: () => void;
     onNavigate: (page: Page) => void;
     activePage: Page;
     cartItemCount: number;
@@ -23,14 +22,15 @@ const NavLink: React.FC<{
     activePage: Page;
     onNavigate: (page: Page) => void;
     children: React.ReactNode;
-}> = ({ page, activePage, onNavigate, children }) => (
+    className?: string;
+}> = ({ page, activePage, onNavigate, children, className }) => (
     <button
         onClick={() => onNavigate(page)}
         className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
             activePage === page
                 ? 'bg-primary-light/20 text-primary-dark'
                 : 'text-gray-600 hover:bg-gray-100'
-        }`}
+        } ${className}`}
     >
         {children}
     </button>
@@ -40,7 +40,6 @@ const Header: React.FC<HeaderProps> = ({
     isAuthenticated,
     userRole,
     onLoginClick, 
-    onSellClick, 
     onNavigate, 
     activePage, 
     cartItemCount, 
@@ -50,6 +49,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
     const [isProfileOpen, setProfileOpen] = useState(false);
     const [isMoreMenuOpen, setMoreMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const profileRef = useRef<HTMLDivElement>(null);
     const moreMenuRef = useRef<HTMLDivElement>(null);
 
@@ -71,50 +71,42 @@ const Header: React.FC<HeaderProps> = ({
     const handleDropdownNavigate = (page: Page) => {
         onNavigate(page);
         setMoreMenuOpen(false);
-    }
+    };
+
+    const handleMobileLinkClick = (page: Page) => {
+        onNavigate(page);
+        setMobileMenuOpen(false);
+    };
+
+    const MobileNavLink: React.FC<{ page: Page; children: React.ReactNode }> = ({ page, children }) => (
+      <button onClick={() => handleMobileLinkClick(page)} className="w-full text-left py-3 px-4 text-base text-gray-700 hover:bg-gray-100 rounded-md">
+        {children}
+      </button>
+    );
 
     return (
+        <>
         <header className="bg-white shadow-sm sticky top-0 z-40">
             <div className="container mx-auto px-4">
-                <div className="flex justify-between items-center py-3">
+                {/* Desktop Header */}
+                <div className="hidden md:flex justify-between items-center py-3">
                     {/* Left Side: Logo & Nav */}
                     <div className="flex items-center space-x-6">
                         {/* Logo */}
                         <div onClick={() => onNavigate('home')} className="cursor-pointer flex items-center flex-shrink-0">
-                            <svg
-                                height="38"
-                                viewBox="0 0 175 38"
-                                xmlns="http://www.w3.org/2000/svg"
-                                aria-labelledby="logoTitle"
-                                role="img"
-                            >
+                            <svg height="38" viewBox="0 0 175 38" xmlns="http://www.w3.org/2000/svg" aria-labelledby="logoTitle" role="img">
                                 <title id="logoTitle">INAMarket Logo</title>
-                                <defs>
-                                    <linearGradient id="logoIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#2dd4bf" />
-                                        <stop offset="100%" stop-color="#0f766e" />
-                                    </linearGradient>
-                                </defs>
-                                <g transform="translate(2, 2)">
-                                    <path d="M34,17 A17,17 0 1,1 17,0 L17,6 A11,11 0 1,0 28,17 Z" fill="url(#logoIconGradient)" />
-                                    <circle cx="17" cy="17" r="5" fill="url(#logoIconGradient)" />
-                                </g>
-                                <text x="48" y="29" fontFamily="Inter, sans-serif" fontSize="24" fontWeight="800" fill="#1e293b">
-                                    INAMarket
-                                </text>
+                                <defs><linearGradient id="logoIconGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2dd4bf" /><stop offset="100%" stop-color="#0f766e" /></linearGradient></defs>
+                                <g transform="translate(2, 2)"><path d="M34,17 A17,17 0 1,1 17,0 L17,6 A11,11 0 1,0 28,17 Z" fill="url(#logoIconGradient)" /><circle cx="17" cy="17" r="5" fill="url(#logoIconGradient)" /></g>
+                                <text x="48" y="29" fontFamily="Inter, sans-serif" fontSize="24" fontWeight="800" fill="#1e293b">INAMarket</text>
                             </svg>
                         </div>
-                         {/* Navigation Links - Desktop */}
                         <nav className="hidden md:flex items-center space-x-1">
                             <NavLink page="about" activePage={activePage} onNavigate={onNavigate}>Tentang Kami</NavLink>
                             <NavLink page="blog" activePage={activePage} onNavigate={onNavigate}>Blog</NavLink>
                             <NavLink page="contact" activePage={activePage} onNavigate={onNavigate}>Kontak</NavLink>
-                             {/* "Lainnya" Dropdown */}
                             <div className="relative" ref={moreMenuRef}>
-                                <button
-                                    onClick={() => setMoreMenuOpen(prev => !prev)}
-                                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100"
-                                >
+                                <button onClick={() => setMoreMenuOpen(prev => !prev)} className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">
                                     Lainnya
                                     <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform ${isMoreMenuOpen ? 'rotate-180' : ''}`} />
                                 </button>
@@ -133,60 +125,100 @@ const Header: React.FC<HeaderProps> = ({
                         </nav>
                     </div>
                     
-                    {/* Middle: Search Bar */}
-                    <div className="hidden md:flex flex-1 max-w-xl mx-6">
+                    <div className="flex flex-1 max-w-xl mx-6">
                         <div className="relative w-full">
-                            <input
-                                type="text"
-                                placeholder="Cari Kopi Gayo di INAMarket..."
-                                className="w-full pl-10 pr-4 py-2 border rounded-full focus:ring-2 focus:ring-primary-light focus:border-primary"
-                            />
+                            <input type="text" placeholder="Cari Kopi Gayo di INAMarket..." className="w-full pl-10 pr-4 py-2 border rounded-full focus:ring-2 focus:ring-primary-light focus:border-primary" />
                             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         </div>
                     </div>
 
-                    {/* Right Side: Actions */}
                     <div className="flex items-center space-x-4 flex-shrink-0">
                         <button onClick={onChatClick} className="relative text-gray-600 hover:text-primary-dark transition-colors" aria-label="Buka obrolan">
                             <ChatBubbleLeftRightIcon className="w-6 h-6" />
-                            {unreadMessageCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scale-in">
-                                    {unreadMessageCount}
-                                </span>
-                            )}
+                            {unreadMessageCount > 0 && (<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scale-in">{unreadMessageCount}</span>)}
                         </button>
-
                         <button onClick={() => onNavigate('cart')} className="relative text-gray-600 hover:text-primary-dark transition-colors" aria-label="Buka keranjang">
                             <ShoppingCartIcon className="w-6 h-6" />
-                            {cartItemCount > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
-                                    {cartItemCount}
-                                </span>
-                            )}
+                            {cartItemCount > 0 && (<span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">{cartItemCount}</span>)}
                         </button>
-                        
                         {isAuthenticated ? (
                              <div className="relative" ref={profileRef}>
-                                <button onClick={() => setProfileOpen(prev => !prev)} className="text-gray-600 hover:text-primary-dark transition-colors">
-                                    <UserCircleIcon className="w-8 h-8" />
-                                </button>
-                                <ProfileDropdown
-                                    isOpen={isProfileOpen}
-                                    userRole={userRole}
-                                    onClose={() => setProfileOpen(false)}
-                                    onNavigate={onNavigate}
-                                    onLogout={onLogout}
-                                />
+                                <button onClick={() => setProfileOpen(prev => !prev)} className="text-gray-600 hover:text-primary-dark transition-colors"><UserCircleIcon className="w-8 h-8" /></button>
+                                <ProfileDropdown isOpen={isProfileOpen} userRole={userRole} onClose={() => setProfileOpen(false)} onNavigate={onNavigate} onLogout={onLogout} />
                              </div>
                         ) : (
-                            <button onClick={onLoginClick} className="bg-primary text-white font-semibold px-5 py-2 rounded-full hover:bg-primary-dark transition-colors">
-                                Masuk
+                            <button onClick={onLoginClick} className="bg-primary text-white font-semibold px-5 py-2 rounded-full hover:bg-primary-dark transition-colors">Masuk</button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Mobile Header */}
+                <div className="md:hidden">
+                    <div className="flex justify-between items-center py-3">
+                        <button onClick={() => setMobileMenuOpen(true)} className="text-gray-600 p-2 -ml-2"><MenuIcon className="w-6 h-6" /></button>
+                        <div onClick={() => onNavigate('home')} className="cursor-pointer">
+                           <svg height="32" viewBox="0 0 175 38" xmlns="http://www.w3.org/2000/svg" aria-labelledby="logoTitleMobile" role="img">
+                                <title id="logoTitleMobile">INAMarket Logo</title>
+                                <g transform="translate(2, 2) scale(0.85)"><path d="M34,17 A17,17 0 1,1 17,0 L17,6 A11,11 0 1,0 28,17 Z" fill="url(#logoIconGradient)" /><circle cx="17" cy="17" r="5" fill="url(#logoIconGradient)" /></g>
+                                <text x="40" y="26" fontFamily="Inter, sans-serif" fontSize="24" fontWeight="800" fill="#1e293b">INAMarket</text>
+                            </svg>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                             <button onClick={onChatClick} className="relative text-gray-600 p-1" aria-label="Buka obrolan">
+                                <ChatBubbleLeftRightIcon className="w-6 h-6" />
+                                {unreadMessageCount > 0 && (<span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scale-in">{unreadMessageCount}</span>)}
+                            </button>
+                            <button onClick={() => onNavigate('cart')} className="relative text-gray-600 p-1" aria-label="Buka keranjang">
+                                <ShoppingCartIcon className="w-6 h-6" />
+                                {cartItemCount > 0 && (<span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold min-w-4 h-4 px-1 rounded-full flex items-center justify-center">{cartItemCount}</span>)}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="pb-3">
+                        <div className="relative w-full">
+                            <input type="text" placeholder="Cari di INAMarket..." className="w-full pl-10 pr-4 py-2 border rounded-full focus:ring-2 focus:ring-primary-light focus:border-primary bg-gray-100" />
+                            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+            <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true">
+                <div className="fixed inset-0 bg-black bg-opacity-50 animate-fade-in-backdrop" onClick={() => setMobileMenuOpen(false)}></div>
+                <div className="relative bg-white w-4/5 max-w-sm h-full shadow-xl flex flex-col animate-slide-in-left">
+                    <div className="p-4 flex justify-between items-center border-b">
+                        <h2 className="font-bold text-lg text-gray-800">Menu</h2>
+                        <button onClick={() => setMobileMenuOpen(false)} className="text-gray-500 p-2 -mr-2"><CloseIcon className="w-6 h-6"/></button>
+                    </div>
+                    <nav className="flex-grow p-4 space-y-2">
+                        <MobileNavLink page="about">Tentang Kami</MobileNavLink>
+                        <MobileNavLink page="blog">Blog</MobileNavLink>
+                        <MobileNavLink page="contact">Kontak</MobileNavLink>
+                        <MobileNavLink page="careers">Karir</MobileNavLink>
+                        <MobileNavLink page="help-center">Pusat Bantuan</MobileNavLink>
+                        <div className="pt-2 border-t"></div>
+                        <MobileNavLink page="privacy-policy">Kebijakan Privasi</MobileNavLink>
+                        <MobileNavLink page="terms">Syarat & Ketentuan</MobileNavLink>
+                    </nav>
+                    <div className="p-4 border-t bg-gray-50">
+                        {isAuthenticated ? (
+                            <div className="space-y-2">
+                                <button onClick={() => handleMobileLinkClick('profile')} className="w-full text-left flex items-center py-2 px-3 text-gray-700 hover:bg-gray-200 rounded-md"><UserCircleIcon className="w-5 h-5 mr-3 text-gray-500"/>Profil Saya</button>
+                                <button onClick={onLogout} className="w-full text-left flex items-center py-2 px-3 text-gray-700 hover:bg-gray-200 rounded-md"><ArrowLeftOnRectangleIcon className="w-5 h-5 mr-3 text-gray-500"/>Keluar</button>
+                            </div>
+                        ) : (
+                            <button onClick={() => { onLoginClick(); setMobileMenuOpen(false); }} className="w-full bg-primary text-white font-semibold py-2.5 rounded-md hover:bg-primary-dark transition-colors">
+                                Masuk / Daftar
                             </button>
                         )}
                     </div>
                 </div>
             </div>
-        </header>
+        )}
+        </>
     );
 };
 

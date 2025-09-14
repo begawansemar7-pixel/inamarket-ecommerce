@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import CartPage from './pages/CartPage';
@@ -33,6 +33,16 @@ import InaContactCenter from './components/InaContactCenter';
 
 type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
 type UserRole = 'Buyer' | 'Seller' | 'Admin';
+
+const usePrevious = <T,>(value: T): T | undefined => {
+  // Fix: The `useRef` hook requires an initial value. `undefined` is provided to fix the error "Expected 1 arguments, but got 0".
+  const ref = useRef<T | undefined>(undefined);
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+};
+
 
 const App: React.FC = () => {
     // Page navigation state
@@ -198,9 +208,13 @@ const App: React.FC = () => {
     }, [filters.category, filters.location, allProducts]);
     
     const showPriceFilter = useMemo(() => {
-        if (productsForPriceFilter.length === 0) return false;
-        const uniquePrices = new Set(productsForPriceFilter.map(p => p.price));
-        return uniquePrices.size > 1; // Only show if there's a range of prices to filter
+        // The price filter is only useful if there's a range of prices to choose from.
+        // This logic efficiently checks if there's more than one unique price among the products.
+        if (productsForPriceFilter.length < 2) {
+            return false;
+        }
+        const firstPrice = productsForPriceFilter[0].price;
+        return productsForPriceFilter.some(p => p.price !== firstPrice);
     }, [productsForPriceFilter]);
 
     const productsForLocationFilter = useMemo(() => {
@@ -215,6 +229,28 @@ const App: React.FC = () => {
     const availableLocations = useMemo(() => {
         return [...new Set(productsForLocationFilter.map(p => p.location))];
     }, [productsForLocationFilter]);
+    
+    // Toast helper function
+    const addToast = (type: ToastMessage['type'], message: string) => {
+        const id = crypto.randomUUID();
+        setToasts(prev => [...prev, { id, type, message }]);
+    };
+    
+    const prevConversations = usePrevious(conversations);
+
+    // Effect to show toast on new unread messages
+    useEffect(() => {
+        if (prevConversations) {
+            const becameUnread = conversations.find(currentConvo => {
+                const prevConvo = prevConversations.find(p => p.id === currentConvo.id);
+                return prevConvo ? !prevConvo.unreadByBuyer && currentConvo.unreadByBuyer : currentConvo.unreadByBuyer;
+            });
+
+            if (becameUnread) {
+                addToast('info', 'Anda memiliki pesan baru!');
+            }
+        }
+    }, [conversations]);
 
     // Effect to update unread message count
     useEffect(() => {
@@ -294,12 +330,6 @@ const App: React.FC = () => {
             ...prev,
             [product.category]: (prev[product.category] || 0) + 1,
         }));
-    };
-
-    // Toast helper function
-    const addToast = (type: ToastMessage['type'], message: string) => {
-        const id = crypto.randomUUID();
-        setToasts(prev => [...prev, { id, type, message }]);
     };
 
     const removeToast = (id: string) => {
@@ -404,7 +434,6 @@ const App: React.FC = () => {
                 timestamp: new Date().toISOString()
             };
             setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, messages: [...c.messages, sellerMessage], unreadByBuyer: true } : c));
-            addToast('info', 'Anda memiliki pesan baru!');
         }, 1500);
     };
 
@@ -618,7 +647,6 @@ const App: React.FC = () => {
                     isAuthenticated={isAuthenticated}
                     userRole={userRole}
                     onLoginClick={() => setAuthModalOpen(true)}
-                    onSellClick={handleSellClick}
                     onNavigate={handleNavigate}
                     activePage={page}
                     cartItemCount={totalCartItemCount}

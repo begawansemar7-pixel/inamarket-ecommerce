@@ -1,3 +1,5 @@
+import { FileWithPath } from 'react-dropzone';
+
 export type VerificationStatus = 'verified' | 'unverified';
 
 export interface Review {
@@ -153,4 +155,37 @@ export interface HeroSlide {
 export interface PriceSuggestion {
   suggested_price: number;
   reasoning: string;
+}
+
+export type AdminRole = 'Super Admin' | 'Admin Blog' | 'Admin Promosi' | 'Admin Layanan';
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: AdminRole;
+}
+
+export interface BlogCategory {
+  title: string;
+  href: string;
+}
+
+export interface BlogAuthor {
+  name: string;
+  role: string;
+  href: string;
+  imageUrl: string;
+}
+
+export interface BlogPost {
+  id: number;
+  title: string;
+  href: string;
+  description: string;
+  imageUrl: string;
+  date: string;
+  datetime: string;
+  category: BlogCategory;
+  author: BlogAuthor;
 }

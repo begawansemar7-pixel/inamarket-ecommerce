@@ -97,11 +97,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Fix: Removed onSellClick prop as it is not defined in HeaderProps. */}
       <Header 
         isAuthenticated={isAuthenticated}
         userRole={isAuthenticated ? 'Buyer' : null} // Dummy role
         onLoginClick={onLoginClick}
-        onSellClick={() => {}} 
         onNavigate={onNavigate} 
         activePage={'checkout'} 
         cartItemCount={cartItemCount} 
