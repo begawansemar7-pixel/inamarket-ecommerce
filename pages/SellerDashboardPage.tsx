@@ -1,19 +1,57 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Product } from '../types';
-import { PRODUCTS } from '../constants'; // For dummy data
-import ProductManagementTable from '../components/ProductManagementTable';
+import { Product, DeliveryOptions, BusinessService, PaymentOptions } from '../types';
+import { PRODUCTS, SERVICES } from '../constants'; // For dummy data
 import AddProductModal from '../components/AddProductModal';
-import { PlusCircleIcon, InformationCircleIcon, CloseIcon } from '../components/icons/Icons';
+import { PlusCircleIcon, InformationCircleIcon, CloseIcon, ShoppingCartIcon, TruckIcon, WrenchScrewdriverIcon, CreditCardIcon, BanknotesIcon } from '../components/icons/Icons';
+import ProductManagementView from '../components/seller/ProductManagementView';
+import DeliveryManagementView from '../components/seller/DeliveryManagementView';
+import ServiceManagementView from '../components/seller/ServiceManagementView';
+import PaymentManagementView from '../components/seller/PaymentManagementView';
+import AccountingView from '../components/seller/AccountingView';
+
+type SellerView = 'products' | 'delivery' | 'services' | 'payment' | 'accounting';
 
 const SellerDashboardPage: React.FC = () => {
-  // For demonstration, we'll filter products for a specific seller
+  const [activeView, setActiveView] = useState<SellerView>('products');
   const [myProducts, setMyProducts] = useState<Product[]>(
     PRODUCTS.filter(p => p.seller === 'Kopi Kita' || p.seller === 'Batik Indah' || p.seller === 'Kulit Asli')
   );
+  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptions>({
+    sameDay: { gojek: true, grab: false, iter: false },
+    interCity: { jne: true, jnt: true, tiki: false, pos: false },
+  });
+  const [paymentOptions, setPaymentOptions] = useState<PaymentOptions>({
+      qris: true,
+      virtualAccounts: {
+        bca: true,
+        mandiri: true,
+        bri: false,
+        bni: false,
+      },
+      eWallets: {
+        gopay: true,
+        ovo: true,
+        shopeePay: false,
+        dana: false,
+        linkAja: false,
+      },
+  });
+  const [businessService, setBusinessService] = useState<BusinessService>({
+    serviceOfferings: SERVICES.filter(s => s.seller === 'Kulit Asli' || s.seller === 'Kopi Kita'),
+    operationalHours: {
+      monday: { active: true, open: '09:00', close: '17:00' },
+      tuesday: { active: true, open: '09:00', close: '17:00' },
+      wednesday: { active: true, open: '09:00', close: '17:00' },
+      thursday: { active: true, open: '09:00', close: '17:00' },
+      friday: { active: true, open: '09:00', close: '17:00' },
+      saturday: { active: false, open: '10:00', close: '15:00' },
+      sunday: { active: false, open: '10:00', close: '15:00' },
+    }
+  });
+
+
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-
-  // State for the low stock notification
   const [showLowStockAlert, setShowLowStockAlert] = useState(false);
 
   const lowStockProducts = useMemo(() =>
@@ -22,20 +60,14 @@ const SellerDashboardPage: React.FC = () => {
   );
 
   useEffect(() => {
-    if (lowStockProducts.length > 0) {
-      setShowLowStockAlert(true);
-    } else {
-      setShowLowStockAlert(false); // Hide if stock is replenished
-    }
+    setShowLowStockAlert(lowStockProducts.length > 0);
   }, [lowStockProducts]);
-
 
   const handleAddProduct = (newProduct: Omit<Product, 'id'>) => {
     const productToAdd: Product = {
       ...newProduct,
-      id: Math.max(...PRODUCTS.map(p => p.id), 0) + 1, // Generate a new unique ID
+      id: Math.max(...PRODUCTS.map(p => p.id), 0) + 1,
       reviews: [],
-      // In a real app, seller info would come from logged-in user context
     };
     setMyProducts(prev => [productToAdd, ...prev]);
   };
@@ -66,21 +98,68 @@ const SellerDashboardPage: React.FC = () => {
     setEditingProduct(null);
   };
 
-  const totalSales = myProducts.reduce((acc, p) => acc + (p.sales || 0), 0);
-  const totalRevenue = myProducts.reduce((acc, p) => acc + (p.sales || 0) * p.price, 0);
-
-  const formatRupiah = (price: number): string => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  const SidebarItem: React.FC<{
+    label: string;
+    view: SellerView;
+    icon: React.ElementType;
+  }> = ({ label, view, icon: Icon }) => (
+    <li>
+      <button
+        onClick={() => setActiveView(view)}
+        className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+          activeView === view
+            ? 'bg-primary text-white font-semibold'
+            : 'text-gray-600 hover:bg-gray-200 hover:text-gray-800'
+        }`}
+      >
+        <Icon className="w-6 h-6" />
+        <span>{label}</span>
+      </button>
+    </li>
+  );
+  
+  const renderContent = () => {
+      switch(activeView) {
+          case 'products':
+              return (
+                  <ProductManagementView
+                      products={myProducts}
+                      onAddProductClick={openAddModal}
+                      onEditProduct={openEditModal}
+                      onDeleteProduct={handleDeleteProduct}
+                  />
+              );
+          case 'delivery':
+              return (
+                  <DeliveryManagementView
+                    options={deliveryOptions}
+                    onOptionsChange={setDeliveryOptions}
+                  />
+              );
+          case 'services':
+              return (
+                  <ServiceManagementView
+                      serviceData={businessService}
+                      onUpdateServices={setBusinessService}
+                  />
+              );
+          case 'payment':
+              return (
+                  <PaymentManagementView 
+                    options={paymentOptions}
+                    onOptionsChange={setPaymentOptions}
+                  />
+              );
+          case 'accounting':
+              return <AccountingView products={myProducts} />;
+          default:
+              return null;
+      }
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
-       {/* Low Stock Notification */}
-       {showLowStockAlert && (
+      {showLowStockAlert && (
         <div className="fixed top-24 right-4 z-50 w-full max-w-sm bg-yellow-50 border border-yellow-200 rounded-lg shadow-lg p-4 animate-step-in">
           <div className="flex items-start">
             <div className="flex-shrink-0">
@@ -95,10 +174,9 @@ const SellerDashboardPage: React.FC = () => {
             <div className="ml-4 flex-shrink-0">
               <button
                 onClick={() => setShowLowStockAlert(false)}
-                className="inline-flex rounded-md bg-yellow-50 p-1.5 text-yellow-500 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-offset-2 focus:ring-offset-yellow-50"
+                className="inline-flex rounded-md bg-yellow-50 p-1.5 text-yellow-500 hover:bg-yellow-100"
                 aria-label="Tutup notifikasi"
               >
-                <span className="sr-only">Tutup</span>
                 <CloseIcon className="h-5 w-5" />
               </button>
             </div>
@@ -108,44 +186,27 @@ const SellerDashboardPage: React.FC = () => {
       
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Dasbor Penjual</h1>
-        <p className="text-gray-500">Kelola produk, pesanan, dan lihat performa toko Anda.</p>
+        <p className="text-gray-500">Kelola produk, pesanan, dan pengiriman toko Anda.</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-gray-500 text-sm font-medium">Total Pendapatan</h3>
-          <p className="text-3xl font-bold text-gray-800 mt-1">
-            {formatRupiah(totalRevenue)}
-          </p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-gray-500 text-sm font-medium">Total Produk Terjual</h3>
-          <p className="text-3xl font-bold text-gray-800 mt-1">{totalSales}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-gray-500 text-sm font-medium">Jumlah Produk Aktif</h3>
-          <p className="text-3xl font-bold text-gray-800 mt-1">{myProducts.length}</p>
-        </div>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-8">
+        <aside className="md:col-span-1">
+          <div className="bg-white p-4 rounded-lg shadow-md sticky top-24">
+              <nav>
+                  <ul className="space-y-2">
+                      <SidebarItem label="Produk" view="products" icon={ShoppingCartIcon} />
+                      <SidebarItem label="Pengiriman" view="delivery" icon={TruckIcon} />
+                      <SidebarItem label="Jasa" view="services" icon={WrenchScrewdriverIcon} />
+                      <SidebarItem label="Pembayaran" view="payment" icon={CreditCardIcon} />
+                      <SidebarItem label="Akunting" view="accounting" icon={BanknotesIcon} />
+                  </ul>
+              </nav>
+          </div>
+        </aside>
 
-      {/* Product Management */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">Manajemen Produk</h2>
-          <button 
-            onClick={openAddModal}
-            className="flex items-center bg-primary hover:bg-primary-dark text-white font-semibold px-4 py-2 rounded-md transition-colors shadow-sm"
-          >
-            <PlusCircleIcon className="w-5 h-5 mr-2" />
-            Tambah Produk Baru
-          </button>
-        </div>
-        <ProductManagementTable
-          products={myProducts}
-          onEdit={openEditModal}
-          onDelete={handleDeleteProduct}
-        />
+        <main className="md:col-span-3 lg:col-span-4">
+          {renderContent()}
+        </main>
       </div>
 
       <AddProductModal

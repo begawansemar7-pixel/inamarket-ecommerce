@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Address, ShippingOption, CartItem, ToastMessage } from '../types';
+import { Address, ShippingOption, CartItem, ToastMessage, PaymentOptions } from '../types';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CheckoutProgress from '../components/checkout/CheckoutProgress';
@@ -23,6 +23,8 @@ interface CheckoutPageProps {
   unreadMessageCount: number;
   onChatClick: () => void;
   addToast: (type: ToastMessage['type'], message: string) => void;
+  availablePaymentOptions: PaymentOptions;
+  isDirectSale: boolean;
 }
 
 type CheckoutStep = 'address' | 'shipping' | 'payment' | 'confirmation';
@@ -37,7 +39,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
     onNavigate,
     unreadMessageCount,
     onChatClick,
-    addToast
+    addToast,
+    availablePaymentOptions,
+    isDirectSale
 }) => {
   const [step, setStep] = useState<CheckoutStep>('address');
   const [address, setAddress] = useState<Address | null>(null);
@@ -73,7 +77,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
       case 'shipping':
         return <ShippingStep onShippingSubmit={handleShippingSubmit} onBack={handleBack} />;
       case 'payment':
-        return <PaymentStep onPaymentSubmit={handlePaymentSubmit} onBack={handleBack} />;
+        return <PaymentStep onPaymentSubmit={handlePaymentSubmit} onBack={handleBack} availableOptions={availablePaymentOptions} />;
       case 'confirmation':
         if(address && shippingOption && paymentMethod) {
             return <ConfirmationStep 
@@ -82,6 +86,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 shippingOption={shippingOption}
                 paymentMethod={paymentMethod}
                 onBackToHome={onBackToHome}
+                isDirectSale={isDirectSale}
             />;
         }
         return <div>Error: Missing order details.</div>
@@ -118,7 +123,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                    </div>
                 </div>
                 <aside className="md:col-span-1">
-                    <OrderSummary items={items} shippingOption={shippingOption} />
+                    <OrderSummary items={items} shippingOption={shippingOption} isDirectSale={isDirectSale} />
                 </aside>
             </div>
         </div>

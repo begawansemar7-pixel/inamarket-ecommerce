@@ -117,6 +117,13 @@ export const DocumentArrowUpIcon: React.FC<SVGProps> = (props) => (
   </svg>
 );
 
+export const DocumentArrowDownIcon: React.FC<SVGProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5 15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+  </svg>
+);
+
+
 export const CheckCircleIcon: React.FC<SVGProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -400,5 +407,12 @@ export const Cog6ToothIcon: React.FC<SVGProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-1.008 1.11-1.226.55-.218 1.19-.244 1.76.012a2.25 2.25 0 011.531 2.441c.21.614.455 1.206.742 1.765.288.56.818.96 1.444 1.139.626.178 1.26.126 1.83-.148a2.25 2.25 0 012.56 2.088c-.024.622-.196 1.222-.456 1.78a2.253 2.253 0 01-1.35 1.533.25.25 0 00-.177.303c.041.282.062.57.062.868 0 .298-.02.586-.062.868a.25.25 0 00.177.303c.48.252.89.654 1.216 1.139a2.253 2.253 0 01.134 2.583c-.26.558-.616 1.056-1.04 1.468a2.25 2.25 0 01-2.923.752c-.57-.22-1.18-.32-1.79-.272a2.25 2.25 0 01-1.732-1.538c-.288-.56-.62-1.096-1-1.584a2.25 2.25 0 00-2.368 0c-.38.488-.712 1.024-1 1.584a2.25 2.25 0 01-1.732 1.538c-.61.048-1.22.148-1.79.272a2.25 2.25 0 01-2.923-.752c-.424-.412-.78-.91-1.04-1.468a2.253 2.253 0 01.134-2.583c.326-.485.736-.887 1.216-1.139a.25.25 0 00.177-.303c-.041-.282-.062-.57-.062-.868s.02-.586.062-.868a.25.25 0 00-.177-.303c-.48-.252-.89-.654-1.216-1.139a2.253 2.253 0 01-.134-2.583c.26-.558.616-1.056 1.04-1.468a2.25 2.25 0 012.923-.752c.57.22 1.18.32 1.79.272a2.25 2.25 0 011.732 1.538c.288.56.62 1.096 1 1.584a2.25 2.25 0 002.368 0z" />
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+  </svg>
+);
+
+export const TagIcon: React.FC<SVGProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
   </svg>
 );

@@ -116,9 +116,11 @@ interface CartPageProps {
     onRemoveItem: (id: number) => void;
     onCheckout: () => void;
     onStartShopping: () => void;
+    isDirectSale: boolean;
+    onToggleDirectSale: () => void;
 }
 
-const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveItem, onCheckout, onStartShopping }) => {
+const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveItem, onCheckout, onStartShopping, isDirectSale, onToggleDirectSale }) => {
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
 
   // Dummy data for history
@@ -129,6 +131,9 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
   ];
 
   const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const platformFee = subtotal * 0.05;
+  const promotionFee = isDirectSale ? subtotal * 0.10 : 0;
+  const total = subtotal + platformFee + promotionFee;
   
   const handleStartRemove = (itemId: number) => {
     setRemovingItemId(itemId);
@@ -164,14 +169,45 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
 
                         {items.map(item => <CartItemRow key={item.id} item={item} onUpdateQuantity={onUpdateQuantity} onRemoveItem={() => handleStartRemove(item.id)} isRemoving={removingItemId === item.id} />)}
                         
-                        <div className="mt-6 flex flex-col sm:flex-row justify-end items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
-                            <div className="text-right">
-                                <span className="text-gray-600">Subtotal:</span>
-                                <p className="text-2xl font-bold text-gray-800">{formatRupiah(subtotal)}</p>
+                        <div className="mt-6 border-t pt-6">
+                            <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
+                                <label className="flex items-center justify-between cursor-pointer group">
+                                    <div className="flex-grow">
+                                        <span className="font-semibold text-gray-800">Simulasikan Transaksi Langsung</span>
+                                        <p className="text-sm text-gray-500">Aktifkan untuk menambahkan biaya promosi 10% (untuk tujuan demo).</p>
+                                    </div>
+                                     <div className={`${isDirectSale ? 'bg-primary' : 'bg-gray-200'} relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out`}>
+                                        <input type="checkbox" className="sr-only" checked={isDirectSale} onChange={onToggleDirectSale} />
+                                        <span aria-hidden="true" className={`${isDirectSale ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+                                    </div>
+                                </label>
                             </div>
-                            <button onClick={onCheckout} className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-md text-lg transition-colors shadow-sm hover:shadow-md">
-                                Checkout
-                            </button>
+
+                            <div className="max-w-sm ml-auto space-y-2">
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Subtotal</span>
+                                    <span className="font-medium">{formatRupiah(subtotal)}</span>
+                                </div>
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Biaya Layanan & Platform (5%)</span>
+                                    <span className="font-medium">+ {formatRupiah(platformFee)}</span>
+                                </div>
+                                {isDirectSale && (
+                                    <div className="flex justify-between text-gray-600 animate-step-in">
+                                        <span>Biaya Promosi (10%)</span>
+                                        <span className="font-medium">+ {formatRupiah(promotionFee)}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between text-xl font-bold text-gray-800 border-t pt-2 mt-2">
+                                    <span>Total</span>
+                                    <span>{formatRupiah(total)}</span>
+                                </div>
+                            </div>
+                            <div className="mt-6 flex justify-end">
+                                <button onClick={onCheckout} className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-md text-lg transition-colors shadow-sm hover:shadow-md">
+                                    Checkout
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ) : (

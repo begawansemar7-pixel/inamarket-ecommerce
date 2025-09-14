@@ -9,6 +9,7 @@ interface ConfirmationStepProps {
   shippingOption: ShippingOption;
   paymentMethod: string;
   onBackToHome: () => void;
+  isDirectSale: boolean;
 }
 
 const formatRupiah = (price: number): string => {
@@ -25,15 +26,19 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   shippingOption,
   paymentMethod,
   onBackToHome,
+  isDirectSale,
 }) => {
   const [paymentStatus, setPaymentStatus] = useState<'awaiting_payment' | 'confirming' | 'confirmed'>(
     paymentMethod === 'qris' ? 'awaiting_payment' : 'confirmed'
   );
   
-  const total = useMemo(() => {
-    const itemsTotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    return itemsTotal + shippingOption.price;
-  }, [items, shippingOption]);
+  const { subtotal, platformFee, promotionFee, total } = useMemo(() => {
+    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const platformFee = subtotal * 0.05;
+    const promotionFee = isDirectSale ? subtotal * 0.10 : 0;
+    const total = subtotal + shippingOption.price + platformFee + promotionFee;
+    return { subtotal, platformFee, promotionFee, total };
+  }, [items, shippingOption, isDirectSale]);
 
   const orderId = useMemo(() => `INAMarket-${Date.now()}`, []);
 
@@ -124,6 +129,19 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
             </div>
         )}
         
+        <div className="pt-6 border-t">
+            <h3 className="font-semibold text-lg text-gray-800 mb-3">Rincian Tagihan</h3>
+            <div className="text-sm text-gray-600 space-y-1.5">
+                <div className="flex justify-between"><span>Subtotal Produk</span> <span className="font-medium text-gray-800">{formatRupiah(subtotal)}</span></div>
+                <div className="flex justify-between"><span>Biaya Pengiriman ({shippingOption.name})</span> <span className="font-medium text-gray-800">{formatRupiah(shippingOption.price)}</span></div>
+                <div className="flex justify-between"><span>Biaya Layanan & Platform (5%)</span> <span className="font-medium text-gray-800">{formatRupiah(platformFee)}</span></div>
+                {isDirectSale && (
+                    <div className="flex justify-between"><span>Biaya Promosi (10%)</span> <span className="font-medium text-gray-800">{formatRupiah(promotionFee)}</span></div>
+                )}
+                 <div className="flex justify-between font-bold text-lg text-gray-900 pt-2 border-t mt-2"><span>Total Tagihan</span> <span>{formatRupiah(total)}</span></div>
+            </div>
+        </div>
+
         <div className="pt-6 border-t">
             <h3 className="font-semibold text-lg text-gray-800 mb-2">Detail Pengiriman</h3>
             <div className="text-sm text-gray-600 space-y-1">

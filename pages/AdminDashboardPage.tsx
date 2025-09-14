@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
-import { ChartPieIcon, UserGroupIcon, ImageIcon, Cog6ToothIcon } from '../components/icons/Icons';
+import { ChartPieIcon, UserGroupIcon, ImageIcon, Cog6ToothIcon, TagIcon } from '../components/icons/Icons';
 import DashboardView from '../components/admin/DashboardView';
 import SellerApprovalView from '../components/admin/SellerApprovalView';
 import CarouselManagementView from '../components/admin/CarouselManagementView';
+import PromoBannerManagementView from '../components/admin/PromoBannerManagementView';
+import { PromoBannerData } from '../types';
 
-type AdminView = 'dashboard' | 'sellers' | 'carousel' | 'settings';
+type AdminView = 'dashboard' | 'sellers' | 'carousel' | 'promo-banner' | 'settings';
 
-const AdminDashboardPage: React.FC = () => {
+interface AdminDashboardPageProps {
+  promoBannerData: PromoBannerData;
+  onUpdatePromoBanner: (newData: PromoBannerData) => void;
+}
+
+const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ promoBannerData, onUpdatePromoBanner }) => {
   const [activeView, setActiveView] = useState<AdminView>('dashboard');
 
   const navItems = [
     { id: 'dashboard', label: 'Dasbor', icon: ChartPieIcon },
     { id: 'sellers', label: 'Persetujuan Penjual', icon: UserGroupIcon },
-    { id: 'carousel', label: 'Pengelolaan Carousel', icon: ImageIcon },
+    { id: 'carousel', label: 'Carousel Bawah', icon: ImageIcon },
+    { id: 'promo-banner', label: 'Banner Promosi', icon: TagIcon },
     { id: 'settings', label: 'Pengaturan', icon: Cog6ToothIcon },
   ];
 
@@ -24,6 +32,11 @@ const AdminDashboardPage: React.FC = () => {
         return <SellerApprovalView />;
       case 'carousel':
         return <CarouselManagementView />;
+      case 'promo-banner':
+        return <PromoBannerManagementView 
+                  initialData={promoBannerData} 
+                  onSave={onUpdatePromoBanner} 
+                />;
       case 'settings':
         return <div>Pengaturan Admin</div>;
       default:

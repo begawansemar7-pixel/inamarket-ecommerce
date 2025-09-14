@@ -111,7 +111,7 @@ const Header: React.FC<HeaderProps> = ({
                         <button onClick={() => onNavigate('cart')} className="relative text-gray-600 hover:text-primary-dark transition-colors" aria-label="Buka keranjang">
                             <ShoppingCartIcon className="w-6 h-6" />
                             {cartItemCount > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
                                     {cartItemCount}
                                 </span>
                             )}

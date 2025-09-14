@@ -15,9 +15,32 @@ const ContactPage: React.FC<ContactPageProps> = ({ addToast }) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        // Clear error on change for better UX
-        if (errors[name as keyof typeof errors]) {
-          setErrors(prev => ({ ...prev, [name]: '' }));
+
+        // Real-time validation logic
+        switch (name) {
+            case 'name':
+                if (!value.trim()) {
+                    setErrors(prev => ({ ...prev, name: 'Nama lengkap tidak boleh kosong.' }));
+                } else {
+                    setErrors(prev => ({ ...prev, name: '' }));
+                }
+                break;
+            case 'email':
+                if (!value.trim()) {
+                    setErrors(prev => ({ ...prev, email: 'Email tidak boleh kosong.' }));
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    setErrors(prev => ({ ...prev, email: 'Format email tidak valid.' }));
+                } else {
+                    setErrors(prev => ({ ...prev, email: '' }));
+                }
+                break;
+            case 'message':
+                if (!value.trim()) {
+                    setErrors(prev => ({ ...prev, message: 'Pesan tidak boleh kosong.' }));
+                } else {
+                    setErrors(prev => ({ ...prev, message: '' }));
+                }
+                break;
         }
     }
 

@@ -4,6 +4,7 @@ import { ShippingOption, CartItem } from '../../types';
 interface OrderSummaryProps {
   items: CartItem[];
   shippingOption: ShippingOption | null;
+  isDirectSale: boolean;
 }
 
 const formatRupiah = (price: number): string => {
@@ -15,15 +16,17 @@ const formatRupiah = (price: number): string => {
 };
 
 
-const OrderSummary: React.FC<OrderSummaryProps> = ({ items, shippingOption }) => {
+const OrderSummary: React.FC<OrderSummaryProps> = ({ items, shippingOption, isDirectSale }) => {
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const shippingCost = shippingOption?.price || 0;
-    const total = subtotal + shippingCost;
+    const platformFee = subtotal * 0.05;
+    const promotionFee = isDirectSale ? subtotal * 0.10 : 0;
+    const total = subtotal + shippingCost + platformFee + promotionFee;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md sticky top-24">
       <h3 className="text-xl font-bold text-gray-800 border-b pb-3 mb-4">Ringkasan Pesanan</h3>
-      <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+      <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
         {items.map(item => (
             <div key={item.id} className="flex items-start space-x-4">
                 <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
@@ -43,7 +46,17 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ items, shippingOption }) =>
             <span>Pengiriman</span>
             <span className="font-medium">{shippingOption ? formatRupiah(shippingCost) : '-'}</span>
         </div>
-        <div className="flex justify-between text-gray-800 font-bold text-lg pt-2">
+        <div className="flex justify-between text-gray-600">
+            <span>Biaya Layanan & Platform (5%)</span>
+            <span className="font-medium">{formatRupiah(platformFee)}</span>
+        </div>
+        {isDirectSale && (
+             <div className="flex justify-between text-gray-600 animate-step-in">
+                <span>Biaya Promosi (10%)</span>
+                <span className="font-medium">{formatRupiah(promotionFee)}</span>
+            </div>
+        )}
+        <div className="flex justify-between text-gray-800 font-bold text-lg pt-2 border-t mt-2">
             <span>Total</span>
             <span>{formatRupiah(total)}</span>
         </div>

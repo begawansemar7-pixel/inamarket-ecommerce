@@ -13,9 +13,9 @@ const slides = [
     imageUrl: "https://picsum.photos/seed/carousel1/1600/600",
     title: "Produk Unggulan Minggu Ini",
     subtitle: "Dapatkan kerajinan tangan dan kuliner terbaik yang dipilih khusus untuk Anda.",
-    buttonText: "Lihat Koleksi",
-    actionType: 'scroll',
-    actionPayload: 'product-section'
+    buttonText: "Hubungi Kami",
+    actionType: 'navigate',
+    actionPayload: 'contact' as Page
   },
   {
     id: 2,
@@ -34,6 +34,15 @@ const slides = [
     buttonText: "Pelajari Lebih Lanjut",
     actionType: 'navigate',
     actionPayload: 'about' as Page
+  },
+  {
+    id: 4,
+    imageUrl: "https://picsum.photos/seed/carousel4/1600/600",
+    title: "Ada Pertanyaan?",
+    subtitle: "Tim kami yang ramah siap membantu Anda menemukan produk yang tepat atau menjawab pertanyaan apa pun.",
+    buttonText: "Hubungi Kami",
+    actionType: 'navigate',
+    actionPayload: 'contact' as Page
   }
 ];
 

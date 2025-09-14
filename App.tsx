@@ -11,7 +11,7 @@ import AuthPage from './pages/AuthPage';
 import ProductDetailModal from './components/ProductDetailModal';
 import Toast from './components/Toast';
 import ChatPanel from './components/chat/ChatPanel';
-import { Product, CartItem, ToastMessage, Conversation } from './types';
+import { Product, CartItem, ToastMessage, Conversation, PromoBannerData, PaymentOptions } from './types';
 import { PRODUCTS, LOCATIONS, ALL_CATEGORIES } from './constants';
 import Hero from './components/Hero';
 import CategoryGrid from './components/CategoryGrid';
@@ -75,6 +75,79 @@ const App: React.FC = () => {
     // Recommendation state
     const [viewedCategories, setViewedCategories] = useState<Record<string, number>>({});
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
+
+    // Promo Banner State
+    const [promoBannerData, setPromoBannerData] = useState<PromoBannerData>({
+        enabled: true,
+        imageUrl: "https://picsum.photos/seed/promo-banner/1200/300",
+        title: "Diskon Kilat Akhir Pekan!",
+        subtitle: "Nikmati potongan harga spesial untuk produk pilihan. Jangan sampai ketinggalan!",
+        buttonText: "Belanja Sekarang",
+    });
+
+    // Seller-specific payment configurations (simulated backend data)
+    const [sellerPaymentConfigs] = useState<Record<string, PaymentOptions>>({
+        'Kopi Kita': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: true, bri: true, bni: false },
+            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: true, linkAja: false }
+        },
+        'Batik Indah': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: true },
+            eWallets: { gopay: true, ovo: true, shopeePay: true, dana: false, linkAja: false }
+        },
+        'Hutan Lestari': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: false, bri: false, bni: false },
+            eWallets: { gopay: true, ovo: false, shopeePay: false, dana: false, linkAja: false }
+        },
+        'Jepara Art': {
+            qris: false,
+            virtualAccounts: { bca: true, mandiri: true, bri: true, bni: true },
+            eWallets: { gopay: false, ovo: false, shopeePay: false, dana: false, linkAja: false }
+        },
+        'Suara Alam': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: true, bri: true, bni: true },
+            eWallets: { gopay: true, ovo: true, shopeePay: true, dana: true, linkAja: true }
+        },
+        // Default for other sellers for broader compatibility
+        'Kulit Asli': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
+            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
+        },
+         'Sunda Kreasi': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
+            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
+        },
+         'Dapur Manado': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
+            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
+        },
+        'Bali Spa': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
+            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
+        },
+        'Sumba Woven': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
+            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
+        },
+        'Ceria Toys': {
+            qris: true,
+            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
+            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
+        }
+    });
+    
+    // Direct sale simulation state
+    const [isDirectSale, setIsDirectSale] = useState(false);
+
 
     // Memoize the cart item count calculation for consistency and performance
     const totalCartItemCount = useMemo(() => {
@@ -236,6 +309,10 @@ const App: React.FC = () => {
             addToast('info', 'Keranjang Anda kosong. Silakan tambahkan produk terlebih dahulu.');
             return;
         }
+        if (newPage === page && newPage === 'home') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
         setPage(newPage);
         window.scrollTo(0, 0);
     };
@@ -337,6 +414,16 @@ const App: React.FC = () => {
         }
     };
 
+    const handleUpdatePromoBanner = (newData: PromoBannerData) => {
+        setPromoBannerData(newData);
+        addToast('success', 'Banner promosi berhasil diperbarui.');
+    };
+
+    const handleToggleDirectSale = () => {
+        setIsDirectSale(prev => !prev);
+        addToast('info', `Mode Transaksi Langsung ${!isDirectSale ? 'diaktifkan' : 'dinonaktifkan'}.`);
+    };
+
     const renderPage = () => {
         switch(page) {
             case 'home':
@@ -380,7 +467,7 @@ const App: React.FC = () => {
                             </section>
                         )}
 
-                        <PromoBanner />
+                        <PromoBanner data={promoBannerData} />
 
                         <section id="product-section" className="py-8 bg-white">
                           <div className="container mx-auto px-4">
@@ -434,10 +521,50 @@ const App: React.FC = () => {
                 );
             case 'cart':
             case 'profile':
-                return <CartPage items={cartItems} onUpdateQuantity={handleUpdateCartQuantity} onRemoveItem={handleRemoveFromCart} onCheckout={() => handleNavigate('checkout')} onStartShopping={() => handleNavigate('home')}/>;
+                return <CartPage items={cartItems} onUpdateQuantity={handleUpdateCartQuantity} onRemoveItem={handleRemoveFromCart} onCheckout={() => handleNavigate('checkout')} onStartShopping={() => handleNavigate('home')} isDirectSale={isDirectSale} onToggleDirectSale={handleToggleDirectSale} />;
             case 'checkout':
-                // Fix: Pass the 'addToast' function to the CheckoutPage component.
-                return <CheckoutPage items={cartItems} onBackToHome={() => { setCartItems([]); handleNavigate('home'); addToast('success', 'Pesanan Anda berhasil dibuat!'); }} cartItemCount={totalCartItemCount} onLogout={handleLogout} isAuthenticated={isAuthenticated} onLoginClick={() => setAuthModalOpen(true)} onNavigate={handleNavigate} unreadMessageCount={unreadMessageCount} onChatClick={() => setChatOpen(true)} addToast={addToast} />;
+                const sellersInCart = [...new Set(cartItems.map(item => item.seller))];
+                let availablePaymentOptions: PaymentOptions = {
+                    qris: false,
+                    virtualAccounts: { bca: false, mandiri: false, bri: false, bni: false },
+                    eWallets: { gopay: false, ovo: false, shopeePay: false, dana: false, linkAja: false }
+                };
+
+                if (sellersInCart.length > 0) {
+                    const firstSellerOptions = sellerPaymentConfigs[sellersInCart[0]];
+                    if (firstSellerOptions) {
+                        availablePaymentOptions = JSON.parse(JSON.stringify(firstSellerOptions));
+                        for (let i = 1; i < sellersInCart.length; i++) {
+                            const currentSellerOptions = sellerPaymentConfigs[sellersInCart[i]];
+                            if (currentSellerOptions) {
+                                availablePaymentOptions.qris &&= currentSellerOptions.qris;
+                                (Object.keys(availablePaymentOptions.virtualAccounts) as Array<keyof typeof availablePaymentOptions.virtualAccounts>).forEach(key => {
+                                    availablePaymentOptions.virtualAccounts[key] &&= currentSellerOptions.virtualAccounts[key];
+                                });
+                                (Object.keys(availablePaymentOptions.eWallets) as Array<keyof typeof availablePaymentOptions.eWallets>).forEach(key => {
+                                    availablePaymentOptions.eWallets[key] &&= currentSellerOptions.eWallets[key];
+                                });
+                            }
+                        }
+                    }
+                }
+                
+                return (
+                    <CheckoutPage 
+                        items={cartItems} 
+                        onBackToHome={() => { setCartItems([]); handleNavigate('home'); addToast('success', 'Pesanan Anda berhasil dibuat!'); }} 
+                        cartItemCount={totalCartItemCount} 
+                        onLogout={handleLogout} 
+                        isAuthenticated={isAuthenticated} 
+                        onLoginClick={() => setAuthModalOpen(true)} 
+                        onNavigate={handleNavigate} 
+                        unreadMessageCount={unreadMessageCount} 
+                        onChatClick={() => setChatOpen(true)} 
+                        addToast={addToast}
+                        availablePaymentOptions={availablePaymentOptions}
+                        isDirectSale={isDirectSale}
+                    />
+                );
             case 'dashboard':
                 if (isAuthenticated && userRole === 'Seller') {
                     return <SellerDashboardPage />;
@@ -446,7 +573,10 @@ const App: React.FC = () => {
                 return null;
             case 'admin-dashboard':
                  if (isAuthenticated && userRole === 'Admin') {
-                    return <AdminDashboardPage />;
+                    return <AdminDashboardPage 
+                                promoBannerData={promoBannerData} 
+                                onUpdatePromoBanner={handleUpdatePromoBanner}
+                            />;
                 }
                 handleNavigate('home'); // Redirect if not authorized
                 return null;

@@ -1,4 +1,3 @@
-
 export type VerificationStatus = 'verified' | 'unverified';
 
 export interface Review {
@@ -76,4 +75,67 @@ export interface SellerApplication {
   email: string;
   status: 'pending' | 'approved' | 'rejected';
   submittedDate: string;
+}
+
+export interface PromoBannerData {
+  enabled: boolean;
+  imageUrl: string;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+}
+
+export interface DeliveryOptions {
+  sameDay: {
+    gojek: boolean;
+    grab: boolean;
+    iter: boolean;
+  };
+  interCity: {
+    jne: boolean;
+    jnt: boolean;
+    tiki: boolean;
+    pos: boolean;
+  };
+}
+
+export interface PaymentOptions {
+  qris: boolean;
+  virtualAccounts: {
+    bca: boolean;
+    mandiri: boolean;
+    bri: boolean;
+    bni: boolean;
+  };
+  eWallets: {
+    gopay: boolean;
+    ovo: boolean;
+    shopeePay: boolean;
+    dana: boolean;
+    linkAja: boolean;
+  };
+}
+
+export interface ServiceOffering {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  price: number;
+  imageUrl: string;
+  seller: string;
+  location: string;
+}
+
+export interface OperationalHours {
+  [day: string]: {
+    active: boolean;
+    open: string;
+    close: string;
+  };
+}
+
+export interface BusinessService {
+  serviceOfferings: ServiceOffering[];
+  operationalHours: OperationalHours;
 }

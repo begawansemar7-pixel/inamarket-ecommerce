@@ -1,4 +1,4 @@
-import { Product, ShippingOption, SellerApplication } from './types';
+import { Product, ShippingOption, SellerApplication, ServiceOffering } from './types';
 import {
     FoodAndDrinkIcon,
     FashionWomanIcon,
@@ -17,7 +17,8 @@ import {
     PartyPopperIcon,
     CostumeIcon,
     SpeakerWaveIcon,
-    CarIcon
+    CarIcon,
+    WrenchScrewdriverIcon
 } from './components/icons/Icons';
 
 export const PRODUCTS: Product[] = [
@@ -224,7 +225,41 @@ export const PRODUCTS: Product[] = [
     },
 ];
 
-const CATEGORIES_WITH_ICONS = [
+export const SERVICES: ServiceOffering[] = [
+  {
+    id: 101,
+    name: 'Jasa Jahit Gaun Pesta',
+    description: 'Menerima jahitan gaun pesta custom sesuai keinginan. Bahan berkualitas dan pengerjaan rapi. Konsultasi gratis.',
+    category: 'Jasa Jahit',
+    price: 750000,
+    imageUrl: 'https://picsum.photos/seed/jahit1/400/400',
+    seller: 'Kulit Asli', // Re-using an existing seller for consistency
+    location: 'Bandung',
+  },
+  {
+    id: 102,
+    name: 'Servis Laptop & Komputer',
+    description: 'Perbaikan segala jenis kerusakan laptop dan PC. Instal ulang, ganti spare part, dan pembersihan. Bergaransi.',
+    category: 'Servis Elektronik',
+    price: 150000,
+    imageUrl: 'https://picsum.photos/seed/servis1/400/400',
+    seller: 'Kopi Kita',
+    location: 'Jakarta',
+  },
+  {
+    id: 103,
+    name: 'Desain Logo Profesional',
+    description: 'Jasa desain logo untuk brand UMKM Anda. Dapatkan 3 opsi konsep logo dengan revisi tak terbatas.',
+    category: 'Desain Grafis',
+    price: 500000,
+    imageUrl: 'https://picsum.photos/seed/desain1/400/400',
+    seller: 'Batik Indah',
+    location: 'Surabaya',
+  },
+];
+
+
+export const CATEGORIES_WITH_ICONS = [
     { name: 'Makanan & Minuman', icon: FoodAndDrinkIcon },
     { name: 'Fashion Wanita', icon: FashionWomanIcon },
     { name: 'Fashion Pria', icon: FashionManIcon },
@@ -236,15 +271,16 @@ const CATEGORIES_WITH_ICONS = [
     { name: 'Mainan & Hobi', icon: ToysAndHobbiesIcon },
 ];
 
-const SERVICE_CATEGORIES_WITH_ICONS = [
+export const SERVICE_CATEGORIES_WITH_ICONS = [
     { name: 'Jasa Jahit', icon: SewingMachineIcon },
     { name: 'Servis Elektronik', icon: WrenchIcon },
     { name: 'Desain Grafis', icon: PenToolIcon },
     { name: 'Jasa Fotografi', icon: CameraIcon },
     { name: 'Katering', icon: FoodTrayIcon },
+    { name: 'Jasa Lainnya', icon: WrenchScrewdriverIcon },
 ];
 
-const RENTAL_CATEGORIES_WITH_ICONS = [
+export const RENTAL_CATEGORIES_WITH_ICONS = [
     { name: 'Sewa Alat Pesta', icon: PartyPopperIcon },
     { name: 'Sewa Kamera', icon: CameraIcon },
     { name: 'Sewa Kostum', icon: CostumeIcon },
