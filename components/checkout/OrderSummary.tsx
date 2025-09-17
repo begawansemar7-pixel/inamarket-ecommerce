@@ -22,6 +22,10 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ items, shippingOption, isDi
     const platformFee = subtotal * 0.05;
     const promotionFee = isDirectSale ? subtotal * 0.10 : 0;
     const total = subtotal + shippingCost + platformFee + promotionFee;
+    
+    const marketMargin = subtotal * 0.05;
+    const earnedPoints = Math.floor(marketMargin * 0.5);
+    const goldSavingsValue = marketMargin * 0.5;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md sticky top-24">
@@ -59,6 +63,17 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ items, shippingOption, isDi
         <div className="flex justify-between text-gray-800 font-bold text-lg pt-2 border-t mt-2">
             <span>Total</span>
             <span>{formatRupiah(total)}</span>
+        </div>
+         <div className="pt-3 mt-3 border-t border-dashed">
+            <p className="text-xs font-semibold text-gray-600 mb-2">Estimasi Keuntungan Loyalti:</p>
+            <div className="flex justify-between text-green-700 text-sm">
+                <span>Poin Didapat</span>
+                <span className="font-bold">{earnedPoints.toLocaleString('id-ID')} Poin</span>
+            </div>
+            <div className="flex justify-between text-yellow-700 text-sm mt-1">
+                <span>Tabungan Emas</span>
+                <span className="font-bold">{formatRupiah(goldSavingsValue)}</span>
+            </div>
         </div>
       </div>
     </div>

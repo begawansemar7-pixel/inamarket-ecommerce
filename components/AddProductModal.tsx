@@ -58,8 +58,20 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSa
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    // ... validation logic ...
-    const isNumber = ['price', 'stock', 'sales', 'discount', 'originalPrice'].includes(name);
+    
+    if (name === 'stock') {
+      const stockValue = Number(value);
+      // Prevent non-positive values (0 or negative) from being set,
+      // but allow the field to be cleared (value becomes '').
+      // An empty string is parsed as 0, so we check for that explicitly.
+      if (stockValue <= 0 && value !== '') {
+        return; // Ignore the input change, the field will snap back to the previous valid value.
+      }
+      setProductData(prev => ({ ...prev, stock: Math.floor(stockValue) }));
+      return;
+    }
+
+    const isNumber = ['price', 'sales', 'discount', 'originalPrice'].includes(name);
     setProductData(prev => ({ ...prev, [name]: isNumber ? Number(value) || 0 : value }));
   };
   
@@ -71,12 +83,16 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSa
     setIsGeneratingDesc(true);
     setAiError(null);
     try {
-        const promptTemplate = `Buat deskripsi produk yang menarik untuk UMKM Indonesia.
-Nama Produk: "\${productName}"
-Gaya bahasa harus antusias dan persuasif.
-Struktur: 1 paragraf pembuka, beberapa bullet points, 1 paragraf penutup.`;
-        const desc = await generateProductDescription(productData.name, '', promptTemplate);
-        setProductData(prev => ({ ...prev, description: desc }));
+        // FIX: The original call had incorrect arguments and didn't handle the array response.
+        // The service expects productName, features, targetAudience, and writingStyle. We'll use defaults as this modal is simpler.
+        const descriptions = await generateProductDescription(productData.name, productData.description, 'Umum', 'Persuasif dan profesional');
+        
+        // The service returns multiple variations; we'll use the first one for simplicity in this modal.
+        if (descriptions && descriptions.length > 0) {
+            setProductData(prev => ({ ...prev, description: descriptions[0] }));
+        } else {
+            setAiError("Gagal menghasilkan deskripsi. Silakan coba lagi.");
+        }
     } catch (err) {
         setAiError((err as Error).message);
     } finally {
@@ -198,7 +214,7 @@ Struktur: 1 paragraf pembuka, beberapa bullet points, 1 paragraf penutup.`;
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">Sisa Stok</label>
-                  <input type="number" name="stock" id="stock" value={productData.stock || 0} onChange={handleChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" />
+                  <input type="number" name="stock" id="stock" value={productData.stock || ''} onChange={handleChange} required min="1" className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" />
                 </div>
                 <div>
                   <label htmlFor="discount" className="block text-sm font-medium text-gray-700 mb-1">Diskon (%)</label>

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Product } from '../../types';
-import { DocumentArrowDownIcon } from '../icons/Icons';
+// Fix: Corrected the icon import from DocumentArrowDownIcon to the existing DocumentArrowUpIcon as suggested by the error.
+import { DocumentArrowUpIcon } from '../icons/Icons';
 
 interface AccountingViewProps {
   products: Product[];
@@ -174,7 +175,7 @@ const AccountingView: React.FC<AccountingViewProps> = ({ products }) => {
                             disabled={filteredTransactions.length === 0}
                             className="flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md transition-colors shadow-sm disabled:bg-green-300"
                         >
-                            <DocumentArrowDownIcon className="w-5 h-5 mr-2" />
+                            <DocumentArrowUpIcon className="w-5 h-5 mr-2" />
                             Ekspor CSV
                         </button>
                     </div>

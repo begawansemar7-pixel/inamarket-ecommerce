@@ -12,62 +12,39 @@ const ContactPage: React.FC<ContactPageProps> = ({ addToast }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState({ name: '', email: '', message: '' });
 
+    // Helper function for centralized validation logic
+    const validateField = (name: string, value: string): string => {
+        switch (name) {
+            case 'name':
+                return value.trim() ? '' : 'Nama lengkap tidak boleh kosong.';
+            case 'email':
+                if (!value.trim()) return 'Email tidak boleh kosong.';
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Format email tidak valid.';
+                return '';
+            case 'message':
+                return value.trim() ? '' : 'Pesan tidak boleh kosong.';
+            default:
+                return '';
+        }
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-
-        // Real-time validation logic
-        switch (name) {
-            case 'name':
-                if (!value.trim()) {
-                    setErrors(prev => ({ ...prev, name: 'Nama lengkap tidak boleh kosong.' }));
-                } else {
-                    setErrors(prev => ({ ...prev, name: '' }));
-                }
-                break;
-            case 'email':
-                if (!value.trim()) {
-                    setErrors(prev => ({ ...prev, email: 'Email tidak boleh kosong.' }));
-                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                    setErrors(prev => ({ ...prev, email: 'Format email tidak valid.' }));
-                } else {
-                    setErrors(prev => ({ ...prev, email: '' }));
-                }
-                break;
-            case 'message':
-                if (!value.trim()) {
-                    setErrors(prev => ({ ...prev, message: 'Pesan tidak boleh kosong.' }));
-                } else {
-                    setErrors(prev => ({ ...prev, message: '' }));
-                }
-                break;
-        }
-    }
+        // Perform real-time validation on change
+        const error = validateField(name, value);
+        setErrors(prev => ({ ...prev, [name]: error }));
+    };
 
     const validateForm = () => {
-        const newErrors = { name: '', email: '', message: '' };
-        let isValid = true;
-        
-        if (!formData.name.trim()) {
-            newErrors.name = 'Nama lengkap tidak boleh kosong.';
-            isValid = false;
-        }
-        
-        if (!formData.email.trim()) {
-            newErrors.email = 'Email tidak boleh kosong.';
-            isValid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Format email tidak valid.';
-            isValid = false;
-        }
-
-        if (!formData.message.trim()) {
-            newErrors.message = 'Pesan tidak boleh kosong.';
-            isValid = false;
-        }
-        
+        const newErrors = {
+            name: validateField('name', formData.name),
+            email: validateField('email', formData.email),
+            message: validateField('message', formData.message),
+        };
         setErrors(newErrors);
-        return isValid;
+        // Return true if no error messages exist
+        return !Object.values(newErrors).some(error => error);
     };
 
     const handleSubmit = (e: React.FormEvent) => {

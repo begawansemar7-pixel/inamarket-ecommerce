@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons/Icons';
-import { HeroSlide } from '../types';
+// Fix: Import the centralized 'Page' type to ensure type consistency for navigation.
+import { HeroSlide, Page } from '../types';
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+// Fix: Remove the local 'Page' type definition in favor of the centralized one from types.ts.
 
 interface HeroProps {
     onNavigate: (page: Page) => void;

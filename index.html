@@ -108,6 +108,17 @@
     animation: flash-bg 0.6s ease-out;
   }
 
+  /* Animation for cart icon */
+  @keyframes cart-bounce {
+    0%, 100% { transform: scale(1); }
+    30% { transform: scale(1.25); }
+    50% { transform: scale(0.9); }
+    70% { transform: scale(1.1); }
+  }
+  .animate-cart-bounce {
+    animation: cart-bounce 0.6s ease;
+  }
+
   .range-slider-thumb {
     pointer-events: auto; /* Make thumbs interactive */
   }
@@ -166,6 +177,23 @@
   }
   .animate-fade-in-backdrop {
     animation: fade-in-backdrop 0.3s ease-out forwards;
+  }
+  /* Add pulse animation for skeletons */
+  @keyframes pulse {
+    50% {
+      opacity: .5;
+    }
+  }
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  /* Page transition animation */
+  @keyframes page-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .animate-page-fade-in {
+    animation: page-fade-in 0.3s ease-out;
   }
 </style>
 </head>

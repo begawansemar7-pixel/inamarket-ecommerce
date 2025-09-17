@@ -1,41 +1,36 @@
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { generateProductDescription, generateProductImage } from '../services/geminiService';
 import Spinner from './Spinner';
 import { SparklesIcon, CloseIcon, MagicWandIcon, DocumentTextIcon, ImageIcon, TrashIcon, DocumentArrowUpIcon, CheckCircleIcon } from './icons/Icons';
 import { fileToBase64 } from '../utils/fileUtils';
 import SellModalResultView from './SellModalResultView';
+import { Product } from '../types';
+import { CATEGORIES } from '../constants';
 
 interface SellModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAddProduct: (productData: Partial<Product>) => void;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
-const DEFAULT_PROMPT = `Anda adalah seorang copywriter marketing ahli untuk UMKM Indonesia. Saya akan memberikan nama produk, fitur utama, dan sebuah gambar produk. Buatlah deskripsi produk yang menarik, ramah, dan persuasif berdasarkan semua informasi tersebut.
-  
-Nama Produk: "\${productName}"
-Fitur-fitur Utama: \${features}
-
-Lihat gambar terlampir untuk memahami visual produknya. Tonjolkan aspek visual yang menarik dari gambar.
-
-Gaya bahasanya harus antusias dan ditujukan untuk konsumen di Indonesia. Gunakan bahasa yang sederhana namun efektif. 
-  
-Struktur deskripsi:
-1.  Satu paragraf pembuka yang menarik perhatian.
-2.  Beberapa poin utama (bullet points) yang menonjolkan fitur/keunggulan produk (termasuk dari gambar).
-3.  Satu paragraf penutup yang mengajak untuk membeli.
-
-Hanya berikan output teks deskripsinya saja, tanpa judul atau embel-embel lain.`;
-
-
-const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
+const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose, onAddProduct }) => {
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
+  const [stock, setStock] = useState('');
+  const [category, setCategory] = useState(CATEGORIES[0]);
   const [features, setFeatures] = useState('');
-  const [generatedDescription, setGeneratedDescription] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [targetAudience, setTargetAudience] = useState('Umum');
+  const [writingStyle, setWritingStyle] = useState('Santai & Ramah');
+
+  const [generatedDescriptions, setGeneratedDescriptions] = useState<string[]>([]);
+  const [finalDescription, setFinalDescription] = useState('');
+  
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'result'>('details');
@@ -45,9 +40,6 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [customPrompt, setCustomPrompt] = useState(DEFAULT_PROMPT);
-  
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
@@ -56,48 +48,48 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
     if (!isOpen) {
       setProductName('');
       setPrice('');
+      setStock('');
+      setCategory(CATEGORIES[0]);
       setFeatures('');
-      setGeneratedDescription('');
+      setTargetAudience('Umum');
+      setWritingStyle('Santai & Ramah');
+      setGeneratedDescriptions([]);
+      setFinalDescription('');
       setError(null);
       setActiveTab('details');
-      setIsLoading(false);
+      setIsGeneratingDesc(false);
       setIsGeneratingImage(false);
-      setShowAdvanced(false);
-      setCustomPrompt(DEFAULT_PROMPT);
       setIsUploading(false);
       setUploadSuccess(false);
       
       // Cleanup image state
-      if (imagePreview) {
+      if (imagePreview && imagePreview.startsWith('blob:')) {
           URL.revokeObjectURL(imagePreview);
       }
       setImage(null);
       setImagePreview(null);
       setIsDragging(false);
     }
-  }, [isOpen, imagePreview]);
+  }, [isOpen]);
 
   const handleFileSelect = (file: File | null) => {
     if (!file) return;
 
     setError(null); // Clear previous errors
 
-    // Validate file type
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       setError("Format file tidak didukung. Gunakan PNG, JPG, atau WEBP.");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       setError(`File terlalu besar. Ukuran maksimal adalah ${MAX_FILE_SIZE / 1024 / 1024}MB.`);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
     
-    // If validation passes
-    if (imagePreview) {
+    if (imagePreview && imagePreview.startsWith('blob:')) {
         URL.revokeObjectURL(imagePreview);
     }
     setImage(file);
@@ -125,7 +117,7 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
   };
 
   const removeImage = () => {
-      if (imagePreview) {
+      if (imagePreview && imagePreview.startsWith('blob:')) {
           URL.revokeObjectURL(imagePreview);
       }
       setImage(null);
@@ -134,15 +126,17 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
         fileInputRef.current.value = "";
       }
   };
-
-  const handleGenerate = async () => {
-    if (!productName || !price || !features) {
-      setError('Nama produk, harga, dan fitur utama harus diisi.');
+  
+  const handleGenerateDescription = async () => {
+    if (!productName || !price || !features || !stock || !category) {
+      setError('Semua field detail produk harus diisi.');
       return;
     }
-    setIsLoading(true);
+    setIsGeneratingDesc(true);
     setError(null);
-    setGeneratedDescription('');
+    setGeneratedDescriptions([]);
+    setFinalDescription('');
+
     try {
       let imageData;
       if (image) {
@@ -153,45 +147,82 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
         imageData = { mimeType, data };
       }
 
-      // Step 1: Generate Description
-      const description = await generateProductDescription(productName, features, customPrompt, imageData);
-      setGeneratedDescription(description);
-      setIsLoading(false);
-
-      // Step 2: Generate Image
-      setIsGeneratingImage(true);
-      const imagePrompt = `A professional, clean, high-quality e-commerce product photo of '${productName}'. Product features: ${features}. White or light gray background, studio lighting.`;
-      const generatedDataUrl = await generateProductImage(imagePrompt);
-
-      // Revoke old blob URL if it exists
-      if (imagePreview && imagePreview.startsWith('blob:')) {
-          URL.revokeObjectURL(imagePreview);
-      }
-      
-      setImagePreview(generatedDataUrl);
-      setImage(null); // Clear the File object, as we now have a data URL
-
-      setActiveTab('result'); // Switch to result tab on success
+      const descriptions = await generateProductDescription(productName, features, targetAudience, writingStyle, imageData);
+      setGeneratedDescriptions(descriptions);
+      setFinalDescription(descriptions[0] || '');
+      setActiveTab('result');
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setIsLoading(false);
-      setIsGeneratingImage(false);
+      setIsGeneratingDesc(false);
     }
   };
   
+  const handleSave = () => {
+    if (!productName || !price || !features || !stock || !category) {
+        setError('Nama, harga, stok, kategori dan fitur harus diisi untuk menyimpan.');
+        return;
+    }
+    setError(null);
+
+    const newProductData: Partial<Product> = {
+        name: productName,
+        price: Number(price),
+        stock: Number(stock),
+        category: category,
+        description: features, // Use 'features' as the description when saving directly
+        imageUrl: imagePreview,
+    };
+    
+    onAddProduct(newProductData);
+    onClose(); // Close after saving
+  };
+
+  const handleGenerateImage = async () => {
+    if (!productName) {
+      setError('Nama produk harus diisi untuk membuat gambar.');
+      return;
+    }
+    setIsGeneratingImage(true);
+    setError(null);
+    try {
+      const imagePrompt = `A professional, clean, high-quality e-commerce product photo of '${productName}'. Features: ${features}. Product description for context: "${finalDescription}". The product should be on a white or light gray background with studio lighting.`;
+      const generatedDataUrl = await generateProductImage(imagePrompt);
+
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+          URL.revokeObjectURL(imagePreview);
+      }
+      setImagePreview(generatedDataUrl);
+      setImage(null);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   const handleSaveAndUpload = () => {
     setIsUploading(true);
     setError(null);
-    // Simulate API call
+
+    const newProductData: Partial<Product> = {
+        name: productName,
+        price: Number(price),
+        stock: Number(stock),
+        category: category,
+        description: finalDescription,
+        imageUrl: imagePreview
+    };
+    
+    onAddProduct(newProductData);
+    
     setTimeout(() => {
         setIsUploading(false);
         setUploadSuccess(true);
-        // Close modal after showing success message
         setTimeout(() => {
             onClose();
         }, 2000);
-    }, 2000);
+    }, 1000);
   };
 
   if (!isOpen) return null;
@@ -199,7 +230,7 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
   const TabButton: React.FC<{ tab: 'details' | 'result'; label: string; icon: React.ReactNode }> = ({ tab, label, icon }) => (
     <button
       onClick={() => setActiveTab(tab)}
-      disabled={tab === 'result' && !generatedDescription}
+      disabled={tab === 'result' && generatedDescriptions.length === 0}
       className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
         activeTab === tab
           ? 'border-primary text-primary'
@@ -213,13 +244,13 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform transition-all animate-fade-in-up">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform transition-all animate-fade-in-up">
         <div className="p-5 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
           <div className="flex items-center space-x-3">
             <div className="bg-primary-light/20 p-2 rounded-full">
                 <MagicWandIcon className="w-6 h-6 text-primary-dark" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800">Buat Deskripsi Produk dengan AI</h2>
+            <h2 className="text-xl font-bold text-gray-800">Buat Produk dengan AI</h2>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <CloseIcon className="w-6 h-6" />
@@ -233,190 +264,144 @@ const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
           </nav>
         </div>
 
-        <div className="p-6 space-y-4 overflow-y-auto flex-grow relative">
-          {(isLoading || isGeneratingImage || isUploading || uploadSuccess) && (
-            <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10 p-6 text-center">
-              {isLoading && (
-                  <>
-                    <Spinner />
-                    <p className="mt-3 text-gray-600 font-medium">AI sedang meracik kata-kata terbaik...</p>
-                  </>
-              )}
-              {isGeneratingImage && (
-                  <>
-                    <Spinner />
-                    <p className="mt-3 text-gray-600 font-medium">AI sedang membuat gambar produk...</p>
-                  </>
-              )}
-              {isUploading && (
-                  <>
-                    <Spinner />
-                    <p className="mt-3 text-gray-600 font-medium">Mengunggah produk Anda ke marketplace...</p>
-                  </>
-              )}
-              {uploadSuccess && (
-                <div className="animate-scale-in">
-                    <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto" />
-                    <p className="mt-3 text-lg text-gray-700 font-semibold">Produk Berhasil Diunggah!</p>
-                    <p className="text-sm text-gray-500">Anda akan segera dialihkan.</p>
-                </div>
-              )}
+        <div className="p-6 overflow-y-auto flex-grow relative">
+          {(isGeneratingDesc || isUploading || uploadSuccess) && (
+            <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-20 p-6 text-center">
+              {isGeneratingDesc && (<><Spinner /><p className="mt-3 text-gray-600 font-medium">AI sedang meracik kata-kata terbaik...</p></>)}
+              {isUploading && (<><Spinner /><p className="mt-3 text-gray-600 font-medium">Mengunggah produk Anda...</p></>)}
+              {uploadSuccess && (<div className="animate-scale-in"><CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto" /><p className="mt-3 text-lg text-gray-700 font-semibold">Produk Berhasil Ditambahkan!</p></div>)}
             </div>
           )}
 
-          <div style={{ visibility: (isLoading || isGeneratingImage || isUploading || uploadSuccess) ? 'hidden' : 'visible' }}>
-            {activeTab === 'details' && (
+          <div className={activeTab === 'details' ? 'block' : 'hidden'}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left Column: Form */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Foto Produk</label>
-                  {imagePreview ? (
-                    <div className="relative group">
-                      <img src={imagePreview} alt="Product preview" className="w-full h-48 object-cover rounded-md border border-gray-200" />
-                      <button
-                        onClick={removeImage}
-                        className="absolute top-2 right-2 bg-black bg-opacity-60 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-none"
-                        aria-label="Remove image"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
+                  <label htmlFor="productName" className="block text-sm font-medium text-gray-700">Nama Produk*</label>
+                  <input type="text" id="productName" value={productName} onChange={e => setProductName(e.target.value)} className="mt-1 w-full border-gray-300 rounded-md shadow-sm" />
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="price" className="block text-sm font-medium text-gray-700">Harga (Rp)*</label>
+                        <input type="number" id="price" value={price} onChange={e => setPrice(e.target.value)} className="mt-1 w-full border-gray-300 rounded-md shadow-sm" />
                     </div>
-                  ) : (
-                    <>
-                      <label
-                        htmlFor="file-upload"
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer transition-colors
-                          ${isDragging ? 'border-primary bg-primary-light/10' : 'hover:border-gray-400'}`}
-                      >
-                        <div className="space-y-1 text-center">
-                          <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="flex text-sm text-gray-600">
-                             <span className="relative rounded-md font-medium text-primary hover:text-primary-dark">
-                                Unggah file
-                              </span>
-                            <p className="pl-1">atau seret dan lepas</p>
-                          </div>
-                          <p className="text-xs text-gray-500">PNG, JPG, WEBP hingga 10MB</p>
-                        </div>
-                      </label>
-                      <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept={ACCEPTED_IMAGE_TYPES.join(',')} ref={fileInputRef} />
-                    </>
-                  )}
+                     <div>
+                        <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stok*</label>
+                        <input type="number" id="stock" value={stock} onChange={e => setStock(e.target.value)} className="mt-1 w-full border-gray-300 rounded-md shadow-sm" />
+                    </div>
+                 </div>
+                 <div>
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700">Kategori*</label>
+                    <select id="category" value={category} onChange={e => setCategory(e.target.value)} className="mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
                 </div>
                 <div>
-                  <label htmlFor="productName" className="block text-sm font-medium text-gray-700 mb-1">Nama Produk</label>
-                  <input
-                    type="text"
-                    id="productName"
-                    value={productName}
-                    onChange={(e) => setProductName(e.target.value)}
-                    placeholder="Contoh: Kopi Gayo Asli Aceh"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
-                  />
+                  <label htmlFor="features" className="block text-sm font-medium text-gray-700">Fitur / Keunggulan Utama*</label>
+                  <textarea id="features" value={features} onChange={e => setFeatures(e.target.value)} rows={3} placeholder="Contoh: 100% Kopi Arabika, Tahan air, Jahitan kuat" className="mt-1 w-full border-gray-300 rounded-md shadow-sm"></textarea>
                 </div>
-                <div>
-                  <label htmlFor="productPrice" className="block text-sm font-medium text-gray-700 mb-1">Harga Produk (Rp)</label>
-                  <input
-                    type="number"
-                    id="productPrice"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="Contoh: 75000"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="features" className="block text-sm font-medium text-gray-700 mb-1">Fitur / Keunggulan Utama</label>
-                  <textarea
-                    id="features"
-                    rows={4}
-                    value={features}
-                    onChange={(e) => setFeatures(e.target.value)}
-                    placeholder="Contoh: 100% Arabika, aroma kuat, sedikit asam, ditanam organik"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <button
-                      onClick={() => setShowAdvanced(!showAdvanced)}
-                      className="text-sm font-medium text-primary hover:text-primary-dark"
-                  >
-                      Opsi Lanjutan {showAdvanced ? '▴' : '▾'}
-                  </button>
-                  {showAdvanced && (
-                      <div className="mt-2">
-                          <label htmlFor="customPrompt" className="block text-sm font-medium text-gray-700 mb-1">Instruksi Kustom untuk AI</label>
-                           <textarea
-                              id="customPrompt"
-                              rows={8}
-                              value={customPrompt}
-                              onChange={(e) => setCustomPrompt(e.target.value)}
-                              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-xs font-mono"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">Gunakan <code className="bg-gray-200 px-1 rounded">\${productName}</code> dan <code className="bg-gray-200 px-1 rounded">\${features}</code> sebagai placeholder.</p>
-                      </div>
-                  )}
-                </div>
-
-                {error && <p className="text-red-600 text-sm">{error}</p>}
               </div>
-            )}
+              {/* Right Column: Image Upload */}
+              <div>
+                 <label className="block text-sm font-medium text-gray-700">Gambar Produk (Opsional)</label>
+                 <p className="text-xs text-gray-500 mb-2">Sertakan gambar agar deskripsi AI lebih akurat.</p>
+                <input type="file" ref={fileInputRef} onChange={handleImageChange} accept={ACCEPTED_IMAGE_TYPES.join(',')} className="hidden" />
+                {imagePreview ? (
+                    <div className="relative group">
+                        <img src={imagePreview} alt="Pratinjau Produk" className="w-full h-48 object-cover rounded-md border" />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all flex items-center justify-center">
+                            <button onClick={removeImage} className="text-white opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-red-600 rounded-full shadow-lg"><TrashIcon className="w-5 h-5"/></button>
+                        </div>
+                    </div>
+                ) : (
+                     <label onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()}
+                        className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md cursor-pointer transition-colors ${isDragging ? 'border-primary bg-primary-light/10' : 'border-gray-300 hover:border-primary'}`}>
+                        <div className="space-y-1 text-center">
+                            <ImageIcon className="mx-auto h-12 w-12 text-gray-400"/>
+                            <p className="text-sm text-gray-600">Seret & lepas file, atau klik untuk memilih</p>
+                            <p className="text-xs text-gray-500">PNG, JPG, WEBP hingga 10MB</p>
+                        </div>
+                    </label>
+                )}
+              </div>
+            </div>
 
-            {activeTab === 'result' && (
-              <SellModalResultView
-                  description={generatedDescription}
-                  onDescriptionChange={setGeneratedDescription}
-                  imagePreview={imagePreview}
-              />
-            )}
+             <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+                <h3 className="font-semibold text-gray-800 mb-3">Pandu AI</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                        <label htmlFor="targetAudience" className="block text-sm font-medium text-gray-700">Target Audiens</label>
+                        <select id="targetAudience" value={targetAudience} onChange={e => setTargetAudience(e.target.value)} className="mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                            <option>Umum</option>
+                            <option>Anak Muda</option>
+                            <option>Keluarga</option>
+                            <option>Profesional</option>
+                             <option>Pecinta Alam</option>
+                        </select>
+                    </div>
+                     <div>
+                        <label htmlFor="writingStyle" className="block text-sm font-medium text-gray-700">Gaya Penulisan</label>
+                        <select id="writingStyle" value={writingStyle} onChange={e => setWritingStyle(e.target.value)} className="mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                            <option>Santai & Ramah</option>
+                            <option>Profesional & Informatif</option>
+                            <option>Mewah & Eksklusif</option>
+                            <option>Lucu & Menghibur</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            {error && <p className="mt-4 text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</p>}
+          </div>
+
+          <div className={activeTab === 'result' ? 'block' : 'hidden'}>
+            <SellModalResultView
+                generatedDescriptions={generatedDescriptions}
+                finalDescription={finalDescription}
+                onFinalDescriptionChange={setFinalDescription}
+                imagePreview={imagePreview}
+                onGenerateImage={handleGenerateImage}
+                isGeneratingImage={isGeneratingImage}
+            />
           </div>
         </div>
         
-        {activeTab === 'details' && (
-          <div className="p-5 bg-gray-50 rounded-b-lg border-t">
-            <button
-              onClick={handleGenerate}
-              disabled={isLoading || isGeneratingImage}
-              className="w-full flex items-center justify-center bg-primary hover:bg-primary-dark text-white font-bold py-2.5 px-4 rounded-md transition-colors disabled:bg-primary-light disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-            >
-              <SparklesIcon className="w-5 h-5 mr-2" />
-              Buat Deskripsi & Gambar
-            </button>
-          </div>
-        )}
-        
-        {activeTab === 'result' && generatedDescription && (
-            <div className="p-5 bg-gray-50 rounded-b-lg border-t">
-              <button
-                onClick={handleSaveAndUpload}
-                disabled={isUploading || uploadSuccess}
-                className="w-full flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-md transition-colors disabled:bg-green-400 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-              >
-                <DocumentArrowUpIcon className="w-5 h-5 mr-2" />
-                Simpan & Unggah ke Marketplace
-              </button>
-            </div>
-        )}
-
+        <div className="p-4 bg-gray-50 rounded-b-lg border-t flex-shrink-0">
+           {activeTab === 'details' && (
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        className="w-full sm:w-auto flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-2.5 px-4 rounded-md transition-colors shadow-sm"
+                    >
+                        <DocumentArrowUpIcon className="w-5 h-5 mr-2" />
+                        Simpan
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleGenerateDescription}
+                        disabled={isGeneratingDesc}
+                        className="w-full flex-grow flex items-center justify-center bg-primary hover:bg-primary-dark text-white font-bold py-2.5 px-4 rounded-md transition-colors shadow-sm hover:shadow-md disabled:bg-primary-light"
+                    >
+                        <SparklesIcon className="w-5 h-5 mr-2" />
+                        {isGeneratingDesc ? 'Membuat Deskripsi...' : 'Buat Deskripsi dengan AI'}
+                    </button>
+                </div>
+           )}
+           {activeTab === 'result' && (
+               <button
+                    type="button"
+                    onClick={handleSaveAndUpload}
+                    disabled={isUploading || uploadSuccess || !finalDescription || !imagePreview}
+                    className="w-full flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-md transition-colors shadow-sm hover:shadow-md disabled:bg-green-300 disabled:cursor-not-allowed"
+                >
+                    <DocumentArrowUpIcon className="w-5 h-5 mr-2" />
+                    Simpan & Unggah Produk
+               </button>
+           )}
+        </div>
       </div>
-      <style>{`
-        @keyframes fade-in-up {
-          0% {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.3s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 };

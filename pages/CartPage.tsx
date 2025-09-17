@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingCartIcon, DocumentTextIcon, ChevronRightIcon, TrashIcon } from '../components/icons/Icons';
+import { ShoppingCartIcon, DocumentTextIcon, ChevronRightIcon, TrashIcon, SparklesIcon } from '../components/icons/Icons';
 import { Product, CartItem as CartItemType } from '../types';
 import { PRODUCTS } from '../constants';
 
@@ -118,9 +118,21 @@ interface CartPageProps {
     onStartShopping: () => void;
     isDirectSale: boolean;
     onToggleDirectSale: () => void;
+    loyaltyPoints: number;
+    onOpenRedemptionModal: () => void;
 }
 
-const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveItem, onCheckout, onStartShopping, isDirectSale, onToggleDirectSale }) => {
+const CartPage: React.FC<CartPageProps> = ({ 
+    items, 
+    onUpdateQuantity, 
+    onRemoveItem, 
+    onCheckout, 
+    onStartShopping, 
+    isDirectSale, 
+    onToggleDirectSale, 
+    loyaltyPoints, 
+    onOpenRedemptionModal 
+}) => {
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
 
   // Dummy data for history
@@ -134,6 +146,10 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
   const platformFee = subtotal * 0.05;
   const promotionFee = isDirectSale ? subtotal * 0.10 : 0;
   const total = subtotal + platformFee + promotionFee;
+
+  const marketMargin = subtotal * 0.05;
+  const earnedPoints = Math.floor(marketMargin * 0.5); // 50% for points, 1 point = Rp 1
+  const goldSavingsValue = marketMargin * 0.5; // 50% for gold savings
   
   const handleStartRemove = (itemId: number) => {
     setRemovingItemId(itemId);
@@ -202,6 +218,17 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
                                     <span>Total</span>
                                     <span>{formatRupiah(total)}</span>
                                 </div>
+                                <div className="pt-3 mt-3 border-t border-dashed">
+                                    <p className="text-sm font-semibold text-gray-700 mb-2">Estimasi Keuntungan Loyalti</p>
+                                    <div className="flex justify-between text-green-600 text-sm">
+                                        <span>Poin Didapat</span>
+                                        <span className="font-bold">{earnedPoints.toLocaleString('id-ID')} Poin</span>
+                                    </div>
+                                    <div className="flex justify-between text-yellow-600 text-sm mt-1">
+                                        <span>Tabungan Emas</span>
+                                        <span className="font-bold">{formatRupiah(goldSavingsValue)}</span>
+                                    </div>
+                                </div>
                             </div>
                             <div className="mt-6 flex justify-end">
                                 <button onClick={onCheckout} className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-md text-lg transition-colors shadow-sm hover:shadow-md">
@@ -221,8 +248,25 @@ const CartPage: React.FC<CartPageProps> = ({ items, onUpdateQuantity, onRemoveIt
             </div>
         </div>
 
-        {/* Transaction History Section */}
-        <div className="lg:col-span-1">
+        {/* Right Column */}
+        <div className="lg:col-span-1 space-y-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex items-center space-x-3 border-b pb-4 mb-4">
+                    <SparklesIcon className="w-6 h-6 text-yellow-500" />
+                    <h2 className="text-xl font-bold text-gray-800">Poin Loyalti Anda</h2>
+                </div>
+                <div className="text-center">
+                    <p className="text-4xl font-bold text-primary-dark">{loyaltyPoints} <span className="text-xl font-semibold text-gray-500">Poin</span></p>
+                    <p className="text-sm text-gray-500 mt-1">Setara dengan {formatRupiah(loyaltyPoints * 1000)}</p>
+                    <button
+                        onClick={onOpenRedemptionModal}
+                        className="mt-4 w-full bg-secondary hover:bg-secondary-dark text-yellow-900 font-bold py-2.5 px-4 rounded-md transition-colors shadow-sm"
+                    >
+                        Tukarkan Poin
+                    </button>
+                </div>
+            </div>
+
             <div className="bg-white p-6 rounded-lg shadow-md">
                  <div className="flex items-center space-x-3 border-b pb-4 mb-4">
                     <DocumentTextIcon className="w-6 h-6 text-primary-dark" />

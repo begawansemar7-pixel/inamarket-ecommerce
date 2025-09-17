@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { GoogleIcon } from '../icons/Icons';
 
 interface RegisterViewProps {
     onRegisterSuccess: () => void;
-    role: 'Buyer' | 'Seller' | null;
+    role: 'Buyer' | 'Seller' | 'Reseller' | null;
 }
 
 const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, role }) => {

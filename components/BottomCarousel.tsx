@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons/Icons';
 import { BOTTOM_CAROUSEL_SLIDES as slidesData } from '../constants';
+// Fix: Import the centralized 'Page' type to ensure type consistency for navigation.
+import { Page } from '../types';
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+// Fix: Remove the local 'Page' type definition in favor of the centralized one from types.ts.
 
 interface BottomCarouselProps {
     onNavigate: (page: Page) => void;

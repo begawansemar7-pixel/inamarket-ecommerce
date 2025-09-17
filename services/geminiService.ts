@@ -16,12 +16,25 @@ interface ImageData {
 export const generateProductDescription = async (
   productName: string,
   features: string,
-  promptTemplate: string,
+  targetAudience: string,
+  writingStyle: string,
   image?: ImageData,
-): Promise<string> => {
-  const finalPrompt = promptTemplate
-    .replace(/\$\{productName\}/g, productName)
-    .replace(/\$\{features\}/g, features);
+): Promise<string[]> => {
+  const finalPrompt = `Anda adalah seorang copywriter marketing ahli untuk UMKM Indonesia. Saya akan memberikan nama produk, fitur, target audiens, dan gaya penulisan. Buatlah deskripsi produk yang menarik dan persuasif.
+
+  Nama Produk: "${productName}"
+  Fitur-fitur Utama: ${features}
+  Target Audiens: ${targetAudience}
+  Gaya Penulisan: ${writingStyle}
+  
+  ${image ? 'Lihat gambar terlampir untuk memahami visual produknya.' : ''}
+
+  Struktur deskripsi yang diinginkan:
+  1.  Satu paragraf pembuka yang menarik.
+  2.  Beberapa poin utama (bullet points) yang menonjolkan fitur/keunggulan.
+  3.  Satu paragraf penutup yang mengajak untuk membeli.
+  
+  Berikan 3 (tiga) variasi deskripsi yang berbeda. Setiap variasi harus unik dalam pendekatan atau penekanannya.`;
 
   let contents: GenerateContentParameters['contents'];
 
@@ -45,8 +58,28 @@ export const generateProductDescription = async (
     const response: GenerateContentResponse = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: contents,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    descriptions: {
+                        type: Type.ARRAY,
+                        description: "Array berisi 3 variasi deskripsi produk yang unik.",
+                        items: { type: Type.STRING }
+                    }
+                },
+                required: ['descriptions']
+            }
+        }
     });
-    return response.text;
+    
+    const result = JSON.parse(response.text);
+    if (result && Array.isArray(result.descriptions)) {
+        return result.descriptions;
+    }
+    throw new Error("Respons AI tidak dalam format yang diharapkan.");
+
   } catch (error) {
     console.error("Error generating description:", error);
     throw new Error("Gagal membuat deskripsi. Silakan coba lagi.");

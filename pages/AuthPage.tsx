@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import LoginView from '../components/auth/LoginView';
 import RegisterView from '../components/auth/RegisterView';
@@ -5,7 +6,7 @@ import ForgotPasswordView from '../components/auth/ForgotPasswordView';
 import { UserGroupIcon, BuildingStorefrontIcon, WrenchScrewdriverIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '../components/icons/Icons';
 
 type AuthView = 'select-role' | 'login' | 'register' | 'forgot-password';
-type UserRole = 'Buyer' | 'Seller' | 'Admin';
+type UserRole = 'Buyer' | 'Seller' | 'Admin' | 'Reseller';
 
 interface AuthPageProps {
     isOpen: boolean;
@@ -37,7 +38,7 @@ const RoleButton: React.FC<{
 const AuthPage: React.FC<AuthPageProps> = ({ isOpen, onClose, onLoginSuccess, onAdminLoginClick }) => {
     const [view, setView] = useState<AuthView>('select-role');
     // Fix: Narrow the type for the 'role' state. It will never be 'Admin' as that role has a separate flow.
-    const [role, setRole] = useState<'Buyer' | 'Seller' | null>(null);
+    const [role, setRole] = useState<'Buyer' | 'Seller' | 'Reseller' | null>(null);
 
     useEffect(() => {
         if (!isOpen) {
@@ -82,6 +83,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isOpen, onClose, onLoginSuccess, on
                     <div className="space-y-4">
                         <RoleButton icon={UserGroupIcon} label="Masuk sebagai Pembeli" onClick={() => handleRoleSelect('Buyer')} />
                         <RoleButton icon={BuildingStorefrontIcon} label="Masuk sebagai Penjual" onClick={() => handleRoleSelect('Seller')} />
+                        <RoleButton icon={BuildingStorefrontIcon} label="Masuk sebagai Reseller" onClick={() => handleRoleSelect('Reseller')} />
                         <RoleButton icon={WrenchScrewdriverIcon} label="Masuk sebagai Admin" onClick={() => handleRoleSelect('Admin')} />
                     </div>
                 );

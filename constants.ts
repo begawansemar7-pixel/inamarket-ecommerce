@@ -1,4 +1,4 @@
-import { Product, ShippingOption, SellerApplication, ServiceOffering, HeroSlide, BlogPost } from './types';
+import { Product, ShippingOption, SellerApplication, ServiceOffering, HeroSlide, BlogPost, RedemptionOption, Seller } from './types';
 import {
     FoodAndDrinkIcon,
     FashionWomanIcon,
@@ -18,7 +18,9 @@ import {
     CostumeIcon,
     SpeakerWaveIcon,
     CarIcon,
-    WrenchScrewdriverIcon
+    WrenchScrewdriverIcon,
+    TicketIcon,
+    BuildingLibraryIcon
 } from './components/icons/Icons';
 
 export const PRODUCTS: Product[] = [
@@ -87,7 +89,7 @@ export const PRODUCTS: Product[] = [
         location: 'Yogyakarta',
         reviews: [],
         sales: 15,
-        stock: 25,
+        stock: 0,
         discount: 0
     },
     {
@@ -155,7 +157,7 @@ export const PRODUCTS: Product[] = [
             { id: 8, user: 'Eko', date: '20 Jul 2024', rating: 5, comment: 'Sambal roa terbaik yang pernah saya coba.' }
         ],
         sales: 250,
-        stock: 200,
+        stock: 0,
         discount: 5
     },
     {
@@ -223,6 +225,49 @@ export const PRODUCTS: Product[] = [
         stock: 30,
         discount: 0
     },
+];
+
+export const SELLERS: Seller[] = [
+    {
+        name: 'Kopi Kita',
+        logoUrl: 'https://picsum.photos/seed/kopikita-logo/200/200',
+        coverImageUrl: 'https://picsum.photos/seed/kopikita-cover/1200/400',
+        tagline: 'Secangkir Semangat dari Petani Lokal',
+        description: 'Kopi Kita adalah rumah bagi para pecinta kopi nusantara. Kami bekerja sama langsung dengan petani-petani di seluruh Indonesia untuk menyajikan biji kopi berkualitas terbaik. Setiap cangkir kopi Anda membantu mensejahterakan petani lokal.',
+        location: 'Jakarta',
+        joinedDate: '15 Jan 2023',
+        verification: 'verified',
+        reviews: [
+            { id: 1, user: 'Andi', date: '25 Jul 2024', rating: 5, comment: 'Pelayanan cepat, kopinya selalu fresh. Langganan!' },
+            { id: 2, user: 'Ratna', date: '10 Jul 2024', rating: 4, comment: 'Adminnya ramah dan informatif.' },
+        ]
+    },
+    {
+        name: 'Batik Indah',
+        logoUrl: 'https://picsum.photos/seed/batikindah-logo/200/200',
+        coverImageUrl: 'https://picsum.photos/seed/batikindah-cover/1200/400',
+        tagline: 'Warisan Budaya dalam Sehelai Kain',
+        description: 'Batik Indah didedikasikan untuk melestarikan keindahan batik tulis dan cap tradisional Indonesia. Kami memberdayakan pengrajin lokal di Jawa dan Madura untuk terus berkarya menghasilkan batik berkualitas tinggi dengan motif yang otentik.',
+        location: 'Surabaya',
+        joinedDate: '02 Mar 2023',
+        verification: 'verified',
+        reviews: [
+            { id: 3, user: 'Maria', date: '28 Jul 2024', rating: 5, comment: 'Pengiriman cepat dan packingnya aman banget. Batiknya asli cantik!' }
+        ]
+    },
+    {
+        name: 'Kulit Asli',
+        logoUrl: 'https://picsum.photos/seed/kulitasli-logo/200/200',
+        coverImageUrl: 'https://picsum.photos/seed/kulitasli-cover/1200/400',
+        tagline: 'Kualitas Kulit Asli Garut',
+        description: 'Kami adalah pengrajin produk kulit dari Garut, Jawa Barat. Semua produk kami dibuat dari kulit sapi dan domba pilihan dengan proses yang teliti untuk menghasilkan produk yang awet dan berkelas.',
+        location: 'Bandung',
+        joinedDate: '20 Apr 2023',
+        verification: 'verified',
+        reviews: [
+             { id: 4, user: 'Joko', date: '1 Aug 2024', rating: 5, comment: 'Produknya mantap, sesuai ekspektasi. Kulitnya tebal dan bagus.' }
+        ]
+    }
 ];
 
 export const SERVICES: ServiceOffering[] = [
@@ -447,5 +492,29 @@ export const BLOG_POSTS: BlogPost[] = [
       href: '#',
       imageUrl: 'https://picsum.photos/seed/author3/40/40',
     },
+  },
+];
+
+export const REDEMPTION_OPTIONS: RedemptionOption[] = [
+  {
+    id: 'voucher',
+    name: 'Voucher Belanja Rp 50.000',
+    description: 'Tukarkan poin Anda dengan voucher belanja senilai Rp 50.000.',
+    pointsRequired: 500,
+    icon: TicketIcon,
+  },
+  {
+    id: 'emas',
+    name: 'Emas 0.5 gram',
+    description: 'Investasi cerdas! Tukarkan poin dengan emas murni 0.5 gram.',
+    pointsRequired: 5000,
+    icon: BuildingLibraryIcon,
+  },
+  {
+    id: 'umroh',
+    name: 'Tabungan Umroh & Haji',
+    description: 'Mulai langkah Anda ke tanah suci dengan menukarkan poin untuk tabungan.',
+    pointsRequired: 10000,
+    icon: BuildingLibraryIcon,
   },
 ];

@@ -19,6 +19,11 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories, onCategorySelec
 
   const visibleCategories = isExpanded ? categories : categories.slice(0, INITIAL_VISIBLE_COUNT);
 
+  const handleCategoryClick = (categoryName: string) => {
+    onCategorySelect(categoryName);
+    document.getElementById('product-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 md:grid-cols-5 lg:grid-cols-7">
       {visibleCategories.map(category => (
@@ -26,7 +31,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories, onCategorySelec
           key={category.name} 
           name={category.name} 
           icon={category.icon}
-          onClick={() => onCategorySelect(category.name)}
+          onClick={() => handleCategoryClick(category.name)}
         />
       ))}
 

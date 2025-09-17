@@ -1,9 +1,13 @@
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCartIcon, UserCircleIcon, SearchIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, MenuIcon, CloseIcon, ArrowLeftOnRectangleIcon } from './icons/Icons';
 import ProfileDropdown from './ProfileDropdown';
+// Fix: Import the centralized 'Page' type to ensure type consistency for navigation.
+import { Page } from '../types';
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
-type UserRole = 'Buyer' | 'Seller' | 'Admin';
+// Fix: Remove the local 'Page' type definition in favor of the centralized one from types.ts.
+type UserRole = 'Buyer' | 'Seller' | 'Admin' | 'Reseller';
 
 interface HeaderProps {
     isAuthenticated: boolean;
@@ -15,6 +19,8 @@ interface HeaderProps {
     onLogout: () => void;
     unreadMessageCount: number;
     onChatClick: () => void;
+    searchTerm: string;
+    onSearchChange: (term: string) => void;
 }
 
 const NavLink: React.FC<{
@@ -45,13 +51,32 @@ const Header: React.FC<HeaderProps> = ({
     cartItemCount, 
     onLogout,
     unreadMessageCount,
-    onChatClick
+    onChatClick,
+    searchTerm,
+    onSearchChange
 }) => {
     const [isProfileOpen, setProfileOpen] = useState(false);
     const [isMoreMenuOpen, setMoreMenuOpen] = useState(false);
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const profileRef = useRef<HTMLDivElement>(null);
     const moreMenuRef = useRef<HTMLDivElement>(null);
+    const [isCartAnimating, setIsCartAnimating] = useState(false);
+    const prevCartItemCount = useRef(cartItemCount);
+
+    useEffect(() => {
+        // Animate only when items are added (count increases), not removed.
+        if (cartItemCount > prevCartItemCount.current) {
+            setIsCartAnimating(true);
+            const timer = setTimeout(() => {
+                setIsCartAnimating(false);
+            }, 600); // Must match animation duration
+
+            return () => clearTimeout(timer);
+        }
+        // Update the ref for the next render.
+        prevCartItemCount.current = cartItemCount;
+    }, [cartItemCount]);
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -112,12 +137,12 @@ const Header: React.FC<HeaderProps> = ({
                                 </button>
                                 {isMoreMenuOpen && (
                                     <div className="absolute left-0 mt-2 w-56 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-dropdown-enter">
-                                        <div className="py-1" role="menu">
-                                            <button onClick={() => handleDropdownNavigate('careers')} className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Karir</button>
-                                            <button onClick={() => handleDropdownNavigate('help-center')} className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Pusat Bantuan</button>
+                                        <div className="p-1" role="menu">
+                                            <button onClick={() => handleDropdownNavigate('careers')} className="w-full text-left block px-4 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-800 transition-colors" role="menuitem">Karir</button>
+                                            <button onClick={() => handleDropdownNavigate('help-center')} className="w-full text-left block px-4 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-800 transition-colors" role="menuitem">Pusat Bantuan</button>
                                             <div className="border-t my-1"></div>
-                                            <button onClick={() => handleDropdownNavigate('privacy-policy')} className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Kebijakan Privasi</button>
-                                            <button onClick={() => handleDropdownNavigate('terms')} className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Syarat & Ketentuan</button>
+                                            <button onClick={() => handleDropdownNavigate('privacy-policy')} className="w-full text-left block px-4 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-800 transition-colors" role="menuitem">Kebijakan Privasi</button>
+                                            <button onClick={() => handleDropdownNavigate('terms')} className="w-full text-left block px-4 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-800 transition-colors" role="menuitem">Syarat & Ketentuan</button>
                                         </div>
                                     </div>
                                 )}
@@ -127,7 +152,13 @@ const Header: React.FC<HeaderProps> = ({
                     
                     <div className="flex flex-1 max-w-xl mx-6">
                         <div className="relative w-full">
-                            <input type="text" placeholder="Cari Kopi Gayo di INAMarket..." className="w-full pl-10 pr-4 py-2 border rounded-full focus:ring-2 focus:ring-primary-light focus:border-primary" />
+                            <input
+                              type="text"
+                              placeholder="Cari Kopi Gayo di INAMarket..."
+                              className="w-full pl-10 pr-4 py-2 border rounded-full focus:ring-2 focus:ring-primary-light focus:border-primary"
+                              value={searchTerm}
+                              onChange={(e) => onSearchChange(e.target.value)}
+                            />
                             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         </div>
                     </div>
@@ -137,7 +168,7 @@ const Header: React.FC<HeaderProps> = ({
                             <ChatBubbleLeftRightIcon className="w-6 h-6" />
                             {unreadMessageCount > 0 && (<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scale-in">{unreadMessageCount}</span>)}
                         </button>
-                        <button onClick={() => onNavigate('cart')} className="relative text-gray-600 hover:text-primary-dark transition-colors" aria-label="Buka keranjang">
+                        <button onClick={() => onNavigate('cart')} className={`relative text-gray-600 hover:text-primary-dark transition-colors ${isCartAnimating ? 'animate-cart-bounce' : ''}`} aria-label="Buka keranjang">
                             <ShoppingCartIcon className="w-6 h-6" />
                             {cartItemCount > 0 && (<span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">{cartItemCount}</span>)}
                         </button>
@@ -168,7 +199,7 @@ const Header: React.FC<HeaderProps> = ({
                                 <ChatBubbleLeftRightIcon className="w-6 h-6" />
                                 {unreadMessageCount > 0 && (<span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scale-in">{unreadMessageCount}</span>)}
                             </button>
-                            <button onClick={() => onNavigate('cart')} className="relative text-gray-600 p-1" aria-label="Buka keranjang">
+                            <button onClick={() => onNavigate('cart')} className={`relative text-gray-600 p-1 ${isCartAnimating ? 'animate-cart-bounce' : ''}`} aria-label="Buka keranjang">
                                 <ShoppingCartIcon className="w-6 h-6" />
                                 {cartItemCount > 0 && (<span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold min-w-4 h-4 px-1 rounded-full flex items-center justify-center">{cartItemCount}</span>)}
                             </button>
@@ -176,7 +207,13 @@ const Header: React.FC<HeaderProps> = ({
                     </div>
                     <div className="pb-3">
                         <div className="relative w-full">
-                            <input type="text" placeholder="Cari di INAMarket..." className="w-full pl-10 pr-4 py-2 border rounded-full focus:ring-2 focus:ring-primary-light focus:border-primary bg-gray-100" />
+                            <input
+                                type="text"
+                                placeholder="Cari di INAMarket..."
+                                className="w-full pl-10 pr-4 py-2 border rounded-full focus:ring-2 focus:ring-primary-light focus:border-primary bg-gray-100"
+                                value={searchTerm}
+                                onChange={(e) => onSearchChange(e.target.value)}
+                            />
                             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         </div>
                     </div>

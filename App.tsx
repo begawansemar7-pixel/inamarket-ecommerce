@@ -1,26 +1,15 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+
+
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import HomePage from './pages/HomePage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
-import SellerDashboardPage from './pages/SellerDashboardPage';
+import AuthPage from './pages/AuthPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
-import SellModal from './components/SellModal';
-import AuthPage from './pages/AuthPage';
-import ProductDetailModal from './components/ProductDetailModal';
-import Toast from './components/Toast';
-import ChatPanel from './components/chat/ChatPanel';
-import { Product, CartItem, ToastMessage, Conversation, PromoBannerData, PaymentOptions, HeroSlide } from './types';
-import { PRODUCTS, LOCATIONS, ALL_CATEGORIES, HERO_SLIDES } from './constants';
-import Hero from './components/Hero';
-import CategoryGrid from './components/CategoryGrid';
-import ProductGrid from './components/ProductGrid';
-import FilterBar from './components/FilterBar';
-import PromoBanner from './components/PromoBanner';
-import BottomCarousel from './components/BottomCarousel';
-import CollapsibleCategorySection from './components/CollapsibleCategorySection';
-import { AdjustmentsHorizontalIcon, CloseIcon } from './components/icons/Icons';
+import SellerDashboardPage from './pages/SellerDashboardPage';
 import AboutPage from './pages/AboutPage';
 import CareersPage from './pages/CareersPage';
 import BlogPage from './pages/BlogPage';
@@ -28,700 +17,429 @@ import ContactPage from './pages/ContactPage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
+import ResellerProfilePage from './pages/ResellerProfilePage';
+import ProductDetailModal from './components/ProductDetailModal';
+import SellModal from './components/SellModal';
+import Toast from './components/Toast';
+import ChatPanel from './components/chat/ChatPanel';
 import ContactCenterFab from './components/ContactCenterFab';
 import InaContactCenter from './components/InaContactCenter';
+import LoyaltyRedemptionModal from './components/LoyaltyRedemptionModal';
+import { Product, CartItem, ToastMessage, Conversation, Message, PaymentOptions, PromoBannerData, HeroSlide, Seller, Page } from './types';
+import { PRODUCTS, HERO_SLIDES, SELLERS } from './constants';
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
-type UserRole = 'Buyer' | 'Seller' | 'Admin';
 
-const usePrevious = <T,>(value: T): T | undefined => {
-  // Fix: The `useRef` hook requires an initial value. `undefined` is provided to fix the error "Expected 1 arguments, but got 0".
-  const ref = useRef<T | undefined>(undefined);
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-};
+type UserRole = 'Buyer' | 'Seller' | 'Admin' | 'Reseller';
 
 
 const App: React.FC = () => {
-    // Page navigation state
-    const [page, setPage] = useState<Page>('home');
+  const [activePage, setActivePage] = useState<Page>('home');
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [userRole, setUserRole] = useState<UserRole | null>('Seller');
+  const [searchTerm, setSearchTerm] = useState('');
 
-    // Authentication state
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userRole, setUserRole] = useState<UserRole | null>(null);
+  // Modals State
+  const [isAuthModalOpen, setAuthModalOpen] = useState(false);
+  const [isSellModalOpen, setSellModalOpen] = useState(false);
+  const [isProductModalOpen, setProductModalOpen] = useState(false);
+  const [isChatPanelOpen, setChatPanelOpen] = useState(false);
+  const [isInaContactCenterOpen, setInaContactCenterOpen] = useState(false);
+  const [isRedemptionModalOpen, setRedemptionModalOpen] = useState(false);
 
-    // Modal states
-    const [isSellModalOpen, setSellModalOpen] = useState(false);
-    const [isAuthModalOpen, setAuthModalOpen] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-    
-    // Cart state
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  
+  // Products state
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
 
-    // Toast state
-    const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-    // Chat state
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [isChatOpen, setChatOpen] = useState(false);
-    const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-    const [unreadMessageCount, setUnreadMessageCount] = useState(0);
-    
-    // AI Contact Center state
-    const [isContactCenterOpen, setContactCenterOpen] = useState(false);
+  // Direct Sale Demo State
+  const [isDirectSale, setIsDirectSale] = useState(false);
+  
+  // Loyalty Points State
+  const [loyaltyPoints, setLoyaltyPoints] = useState(1250); // Dummy points
 
-    // Product and filter state
-    const [allProducts] = useState<Product[]>(PRODUCTS);
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>(PRODUCTS);
-    const [filters, setFilters] = useState({
-        category: 'all',
-        price: [0, 1500000], 
-        location: 'all',
+  // Dummy conversation data
+  const [conversations, setConversations] = useState<Conversation[]>([
+      {
+        id: 'product-1_seller-KopiKita',
+        productId: 1,
+        productName: 'Kopi Gayo Asli Aceh',
+        productImageUrl: 'https://picsum.photos/seed/kopi1/400/400',
+        sellerName: 'Kopi Kita',
+        messages: [
+            { id: 'msg-1', sender: 'seller', text: 'Halo! Ada yang bisa dibantu dengan Kopi Gayo kami?', timestamp: '10:30' },
+            { id: 'msg-2', sender: 'buyer', text: 'Apakah ini 100% arabika?', timestamp: '10:31' },
+            { id: 'msg-3', sender: 'seller', text: 'Betul kak, 100% arabika asli dari dataran tinggi Gayo.', timestamp: '10:32' },
+        ],
+        unreadByBuyer: false,
+      },
+      {
+        id: 'product-2_seller-BatikIndah',
+        productId: 2,
+        productName: 'Batik Tulis Madura',
+        productImageUrl: 'https://picsum.photos/seed/batik1/400/400',
+        sellerName: 'Batik Indah',
+        messages: [
+             { id: 'msg-4', sender: 'seller', text: 'Selamat datang di Batik Indah. Batik tulisnya ready stock kak, silakan diorder.', timestamp: '11:00' },
+        ],
+        unreadByBuyer: true,
+      }
+  ]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+
+  const unreadMessageCount = useMemo(() => conversations.filter(c => c.unreadByBuyer).length, [conversations]);
+
+  const addToast = (type: ToastMessage['type'], message: string) => {
+    const id = crypto.randomUUID();
+    setToasts(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+  
+  const handleNavigate = (page: Page) => {
+    setActivePage(page);
+    window.scrollTo(0, 0);
+  };
+  
+  const handleLoginSuccess = (role: UserRole) => {
+    setIsAuthenticated(true);
+    setUserRole(role);
+    setAuthModalOpen(false);
+    if (role === 'Admin') {
+      handleNavigate('admin-dashboard');
+    } else if (role === 'Seller' || role === 'Reseller') {
+      handleNavigate('seller-dashboard');
+    } else {
+      handleNavigate('home');
+    }
+    addToast('success', `Selamat datang! Anda berhasil masuk sebagai ${role}.`);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setUserRole(null);
+    handleNavigate('home');
+    addToast('info', 'Anda telah keluar.');
+  };
+  
+  const handleViewDetails = (product: Product) => {
+    setSelectedProduct(product);
+    setProductModalOpen(true);
+  };
+  
+  const handleViewSellerProfile = (sellerName: string) => {
+    const sellerData = SELLERS.find(s => s.name === sellerName);
+    if (sellerData) {
+        setSelectedSeller(sellerData);
+        handleNavigate('reseller-profile');
+        setProductModalOpen(false); // Close product modal if open
+    } else {
+        addToast('error', 'Profil penjual tidak ditemukan.');
+    }
+  };
+
+  const handleAddToCart = (product: Product, quantity: number) => {
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => item.id === product.id);
+      if (existingItem) {
+        return prevCart.map(item =>
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+        );
+      }
+      return [...prevCart, { ...product, quantity }];
     });
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    
-    // Recommendation state
-    const [viewedCategories, setViewedCategories] = useState<Record<string, number>>({});
-    const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
+    addToast('success', `${product.name} telah ditambahkan ke keranjang.`);
+  };
 
-    // Promo Banner State
-    const [promoBannerData, setPromoBannerData] = useState<PromoBannerData>({
-        enabled: true,
-        imageUrl: "https://picsum.photos/seed/promo-banner/1200/300",
-        title: "Diskon Kilat Akhir Pekan!",
-        subtitle: "Nikmati potongan harga spesial untuk produk pilihan. Jangan sampai ketinggalan!",
-        buttonText: "Belanja Sekarang",
-    });
-    
-    // Hero Carousel State
-    const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(HERO_SLIDES);
+  const handleBuyNow = (product: Product) => {
+    const isInCart = cart.some(item => item.id === product.id);
+    if (!isInCart) {
+        handleAddToCart(product, 1);
+    }
+    handleNavigate('checkout');
+  };
 
-    // Seller-specific payment configurations (simulated backend data)
-    const [sellerPaymentConfigs] = useState<Record<string, PaymentOptions>>({
-        'Kopi Kita': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: true, bri: true, bni: false },
-            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: true, linkAja: false }
-        },
-        'Batik Indah': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: true },
-            eWallets: { gopay: true, ovo: true, shopeePay: true, dana: false, linkAja: false }
-        },
-        'Hutan Lestari': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: false, bri: false, bni: false },
-            eWallets: { gopay: true, ovo: false, shopeePay: false, dana: false, linkAja: false }
-        },
-        'Jepara Art': {
-            qris: false,
-            virtualAccounts: { bca: true, mandiri: true, bri: true, bni: true },
-            eWallets: { gopay: false, ovo: false, shopeePay: false, dana: false, linkAja: false }
-        },
-        'Suara Alam': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: true, bri: true, bni: true },
-            eWallets: { gopay: true, ovo: true, shopeePay: true, dana: true, linkAja: true }
-        },
-        // Default for other sellers for broader compatibility
-        'Kulit Asli': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
-            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
-        },
-         'Sunda Kreasi': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
-            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
-        },
-         'Dapur Manado': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
-            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
-        },
-        'Bali Spa': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
-            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
-        },
-        'Sumba Woven': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
-            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
-        },
-        'Ceria Toys': {
-            qris: true,
-            virtualAccounts: { bca: true, mandiri: true, bri: false, bni: false },
-            eWallets: { gopay: true, ovo: true, shopeePay: false, dana: false, linkAja: false }
-        }
-    });
-    
-    // Direct sale simulation state
-    const [isDirectSale, setIsDirectSale] = useState(false);
-
-
-    // Memoize the cart item count calculation for consistency and performance
-    const totalCartItemCount = useMemo(() => {
-        return cartItems.reduce((acc, item) => acc + item.quantity, 0);
-    }, [cartItems]);
-
-    // Memoized list for featured products
-    const featuredProducts = useMemo(() => {
-        return [...allProducts]
-            .sort((a, b) => (b.sales || 0) - (a.sales || 0))
-            .slice(0, 5);
-    }, [allProducts]);
-    
-    // Memoized list for promotional products
-    const promoProducts = useMemo(() => {
-        return allProducts.filter(p => p.originalPrice && p.originalPrice > p.price);
-    }, [allProducts]);
-    
-    // Memoized list for new products
-    const newProducts = useMemo(() => {
-        return [...allProducts]
-            .sort((a, b) => b.id - a.id) // Sort by newest ID
-            .filter(p => !featuredProducts.some(fp => fp.id === p.id))
-            .filter(p => !promoProducts.some(pp => pp.id === p.id))
-            .slice(0, 8);
-    }, [allProducts, featuredProducts, promoProducts]);
-
-    const activeFilterCount = useMemo(() => {
-        const isCategoryActive = filters.category !== 'all';
-        const isLocationActive = filters.location !== 'all';
-        const isPriceActive = filters.price[0] > 0 || filters.price[1] < 1500000;
-        return [isCategoryActive, isLocationActive, isPriceActive].filter(Boolean).length;
-    }, [filters]);
-
-    // Calculate products relevant for each filter, excluding the filter itself
-    const productsForPriceFilter = useMemo(() => {
-        let tempProducts = [...allProducts];
-        if (filters.category !== 'all') {
-            tempProducts = tempProducts.filter(p => p.category === filters.category);
-        }
-        if (filters.location !== 'all') {
-            tempProducts = tempProducts.filter(p => p.location === filters.location);
-        }
-        return tempProducts;
-    }, [filters.category, filters.location, allProducts]);
-    
-    const showPriceFilter = useMemo(() => {
-        // The price filter is only useful if there's a range of prices to choose from.
-        // This logic efficiently checks if there's more than one unique price among the products.
-        if (productsForPriceFilter.length < 2) {
-            return false;
-        }
-        const firstPrice = productsForPriceFilter[0].price;
-        return productsForPriceFilter.some(p => p.price !== firstPrice);
-    }, [productsForPriceFilter]);
-
-    const productsForLocationFilter = useMemo(() => {
-        let tempProducts = [...allProducts];
-        if (filters.category !== 'all') {
-            tempProducts = tempProducts.filter(p => p.category === filters.category);
-        }
-        tempProducts = tempProducts.filter(p => p.price >= filters.price[0] && p.price <= filters.price[1]);
-        return tempProducts;
-    }, [filters.category, filters.price, allProducts]);
-
-    const availableLocations = useMemo(() => {
-        return [...new Set(productsForLocationFilter.map(p => p.location))];
-    }, [productsForLocationFilter]);
-    
-    // Toast helper function
-    const addToast = (type: ToastMessage['type'], message: string) => {
-        const id = crypto.randomUUID();
-        setToasts(prev => [...prev, { id, type, message }]);
+  const handleUpdateCartQuantity = (productId: number, newQuantity: number) => {
+      if (newQuantity < 1) return;
+      setCart(cart.map(item => item.id === productId ? { ...item, quantity: newQuantity } : item));
+  };
+  
+  const handleRemoveFromCart = (productId: number) => {
+      const itemToRemove = cart.find(item => item.id === productId);
+      if(itemToRemove) {
+          addToast('info', `${itemToRemove.name} telah dihapus dari keranjang.`);
+      }
+      setCart(cart.filter(item => item.id === productId));
+  };
+  
+    const handleAddProduct = (newProductData: Partial<Product>) => {
+        const newProduct: Product = {
+            id: Math.max(0, ...products.map(p => p.id)) + 1,
+            name: newProductData.name || 'Produk Baru Tanpa Nama',
+            price: newProductData.price || 0,
+            description: newProductData.description || 'Tidak ada deskripsi.',
+            imageUrl: newProductData.imageUrl || 'https://picsum.photos/seed/newproduct/400/400',
+            category: newProductData.category || 'Lainnya',
+            seller: 'Toko Anda',
+            sellerVerification: 'verified',
+            location: 'Jakarta',
+            reviews: [],
+            sales: 0,
+            stock: newProductData.stock || 10,
+            discount: 0
+        };
+        setProducts(prev => [newProduct, ...prev]);
+        addToast('success', `${newProduct.name} berhasil ditambahkan ke marketplace!`);
     };
+
+  const handleSendMessage = (conversationId: string, text: string) => {
+      setConversations(prev => prev.map(convo => {
+          if (convo.id === conversationId) {
+              const newMessage: Message = {
+                  id: crypto.randomUUID(),
+                  sender: 'buyer',
+                  text,
+                  timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+              };
+              return { ...convo, messages: [...convo.messages, newMessage] };
+          }
+          return convo;
+      }));
+  };
+  
+  const handleSendMessageToSeller = (product: Product, text: string) => {
+    const conversationId = `product-${product.id}_seller-${product.seller.replace(/\s+/g, '')}`;
     
-    const prevConversations = usePrevious(conversations);
+    const newMessage: Message = {
+        id: crypto.randomUUID(),
+        sender: 'buyer',
+        text,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+    };
 
-    // Effect to show toast on new unread messages
-    useEffect(() => {
-        if (prevConversations) {
-            const becameUnread = conversations.find(currentConvo => {
-                const prevConvo = prevConversations.find(p => p.id === currentConvo.id);
-                return prevConvo ? !prevConvo.unreadByBuyer && currentConvo.unreadByBuyer : currentConvo.unreadByBuyer;
-            });
+    setConversations(prev => {
+        const existingConvoIndex = prev.findIndex(c => c.id === conversationId);
 
-            if (becameUnread) {
-                addToast('info', 'Anda memiliki pesan baru!');
-            }
-        }
-    }, [conversations]);
-
-    // Effect to update unread message count
-    useEffect(() => {
-        const unreadCount = conversations.filter(c => c.unreadByBuyer).length;
-        setUnreadMessageCount(unreadCount);
-    }, [conversations]);
-
-    // Filtering logic
-    useEffect(() => {
-        let tempProducts = [...allProducts];
-
-        if (filters.category !== 'all') {
-            tempProducts = tempProducts.filter(p => p.category === filters.category);
-        }
-        if (filters.location !== 'all') {
-            tempProducts = tempProducts.filter(p => p.location === filters.location);
-        }
-        tempProducts = tempProducts.filter(p => p.price >= filters.price[0] && p.price <= filters.price[1]);
-        
-        setFilteredProducts(tempProducts);
-    }, [filters, allProducts]);
-
-    // Recommendation logic
-    useEffect(() => {
-        const categoryEntries = Object.entries(viewedCategories);
-        if (categoryEntries.length === 0) {
-            setRecommendedProducts([]);
-            return;
-        }
-
-        // Find the most viewed category
-        const [mostViewedCategory] = categoryEntries.sort(([, a], [, b]) => b - a)[0];
-
-        // Get products from this category, excluding those already in other sections, shuffle, and take a few
-        const recommendations = allProducts
-            .filter(p => p.category === mostViewedCategory)
-            .filter(p => !featuredProducts.some(fp => fp.id === p.id))
-            .filter(p => !promoProducts.some(pp => pp.id === p.id))
-            .filter(p => !newProducts.some(np => np.id === p.id))
-            .sort(() => 0.5 - Math.random()) // Shuffle
-            .slice(0, 4); // Take up to 4 recommendations
-
-        // Fallback in case all products in the top category are already displayed
-        if (recommendations.length > 0) {
-            setRecommendedProducts(recommendations);
+        if (existingConvoIndex > -1) {
+            // Conversation exists, update it
+            const updatedConversations = [...prev];
+            const updatedConvo = { ...updatedConversations[existingConvoIndex] };
+            updatedConvo.messages = [...updatedConvo.messages, newMessage];
+            updatedConvo.unreadByBuyer = false; // Mark as read since we are actively sending
+            updatedConversations[existingConvoIndex] = updatedConvo;
+            return updatedConversations;
         } else {
-            const fallbackRecommendations = allProducts
-                .filter(p => p.category === mostViewedCategory)
-                .sort(() => 0.5 - Math.random())
-                .slice(0, 4);
-            setRecommendedProducts(fallbackRecommendations);
-        }
-    }, [viewedCategories, allProducts, featuredProducts, promoProducts, newProducts]);
-
-    const handleFilterChange = (filterName: keyof typeof filters, value: any) => {
-        setFilters(prev => ({...prev, [filterName]: value}));
-    };
-    
-    const handleCategorySelect = (categoryName: string) => {
-        handleFilterChange('category', categoryName);
-        document.getElementById('product-section')?.scrollIntoView({ behavior: 'smooth' });
-        // Update browsing history for recommendations
-        setViewedCategories(prev => ({
-            ...prev,
-            [categoryName]: (prev[categoryName] || 0) + 1,
-        }));
-    };
-
-    const resetFilters = () => {
-        setFilters({ category: 'all', price: [0, 1500000], location: 'all' });
-    };
-
-    const handleViewDetails = (product: Product) => {
-        setSelectedProduct(product);
-        // Update browsing history for recommendations
-        setViewedCategories(prev => ({
-            ...prev,
-            [product.category]: (prev[product.category] || 0) + 1,
-        }));
-    };
-
-    const removeToast = (id: string) => {
-        setToasts(prev => prev.filter(toast => toast.id !== id));
-    };
-
-    // Navigation handler
-    const handleNavigate = (newPage: Page) => {
-        if (newPage === 'checkout' && cartItems.length === 0) {
-            addToast('info', 'Keranjang Anda kosong. Silakan tambahkan produk terlebih dahulu.');
-            return;
-        }
-        if (newPage === page && newPage === 'home') {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-        }
-        setPage(newPage);
-        window.scrollTo(0, 0);
-    };
-
-    // Auth handlers
-    const handleLoginSuccess = (role: UserRole) => {
-        setIsAuthenticated(true);
-        setUserRole(role);
-        setAuthModalOpen(false);
-        addToast('success', `Berhasil masuk sebagai ${role}!`);
-        if (role === 'Seller') {
-            setPage('dashboard');
-        } else if (role === 'Admin') {
-            setPage('admin-dashboard');
-        }
-    };
-    
-    const handleLogout = () => {
-        setIsAuthenticated(false);
-        setUserRole(null);
-        setPage('home');
-        addToast('info', 'Anda telah keluar.');
-    };
-    
-    // Cart handlers
-    const handleAddToCart = (product: Product, quantity: number) => {
-        setCartItems(prev => {
-            const existingItem = prev.find(item => item.id === product.id);
-            if (existingItem) {
-                return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
-            }
-            return [...prev, { ...product, quantity }];
-        });
-        addToast('success', `${product.name} ditambahkan ke keranjang.`);
-    };
-    
-    const handleUpdateCartQuantity = (productId: number, newQuantity: number) => {
-        if (newQuantity < 1) {
-            handleRemoveFromCart(productId);
-            return;
-        }
-        setCartItems(prev => prev.map(item => item.id === productId ? { ...item, quantity: newQuantity } : item));
-    };
-
-    const handleRemoveFromCart = (productId: number) => {
-        setCartItems(prev => prev.filter(item => item.id !== productId));
-        addToast('info', 'Produk dihapus dari keranjang.');
-    };
-
-    // Chat handlers
-    const handleStartChat = (product: Product) => {
-        const convoId = `${product.id}-${product.seller}`;
-        const existingConvo = conversations.find(c => c.id === convoId);
-        if (!existingConvo) {
-            const newConvo: Conversation = {
-                id: convoId,
+            // Conversation doesn't exist, create a new one
+            const newConversation: Conversation = {
+                id: conversationId,
                 productId: product.id,
                 productName: product.name,
                 productImageUrl: product.imageUrl,
                 sellerName: product.seller,
-                messages: [],
+                messages: [newMessage],
                 unreadByBuyer: false,
             };
-            setConversations(prev => [newConvo, ...prev]);
+            return [newConversation, ...prev];
         }
-        setActiveConversationId(convoId);
-        setChatOpen(true);
-    };
-    
-    const handleSendMessage = (conversationId: string, text: string) => {
-        const newMessage = {
-            id: crypto.randomUUID(),
-            sender: 'buyer' as const,
-            text,
-            timestamp: new Date().toISOString()
-        };
+    });
+
+    addToast('success', `Pesan Anda untuk "${product.name}" telah terkirim.`);
+  };
+
+  const handleSelectConversation = (id: string) => {
+      setActiveConversationId(id);
+      // Mark as read
+      setConversations(prev => prev.map(c => c.id === id ? { ...c, unreadByBuyer: false } : c));
+  };
+  
+  const handleRedeemPoints = (pointsToDeduct: number, itemName: string) => {
+      if (loyaltyPoints >= pointsToDeduct) {
+          setLoyaltyPoints(prev => prev - pointsToDeduct);
+          addToast('success', `Berhasil menukarkan ${itemName} dengan ${pointsToDeduct} poin!`);
+          setRedemptionModalOpen(false);
+      } else {
+          addToast('error', 'Poin Anda tidak mencukupi.');
+      }
+  };
+
+  // State for Admin-managed UI elements
+  const [promoBannerData, setPromoBannerData] = useState<PromoBannerData>({
+    enabled: true,
+    imageUrl: "https://picsum.photos/seed/promo1/1600/400",
+    title: "Promo Gajian Tiba!",
+    subtitle: "Nikmati diskon spesial hingga 50% untuk produk-produk UMKM pilihan.",
+    buttonText: "Lihat Promo"
+  });
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(HERO_SLIDES);
+  
+  const availablePaymentOptions: PaymentOptions = {
+    qris: true,
+    virtualAccounts: { bca: true, mandiri: true, bri: true, bni: false },
+    eWallets: { gopay: true, ovo: true, shopeePay: false, dana: true, linkAja: false },
+  };
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    if (activePage !== 'home') {
+        handleNavigate('home');
+    }
+  };
+
+  const renderPage = () => {
+    switch (activePage) {
+      case 'home': return <HomePage products={products} onViewDetails={handleViewDetails} onAddToCart={handleAddToCart} onNavigate={handleNavigate} onSellClick={() => setSellModalOpen(true)} promoBannerData={promoBannerData} heroSlides={heroSlides} searchTerm={searchTerm} onBuyNow={handleBuyNow} onViewSellerProfile={handleViewSellerProfile} />;
+      case 'cart': return <CartPage items={cart} onUpdateQuantity={handleUpdateCartQuantity} onRemoveItem={handleRemoveFromCart} onCheckout={() => handleNavigate('checkout')} onStartShopping={() => handleNavigate('home')} isDirectSale={isDirectSale} onToggleDirectSale={() => setIsDirectSale(p => !p)} loyaltyPoints={loyaltyPoints} onOpenRedemptionModal={() => setRedemptionModalOpen(true)} />;
+      case 'checkout': return <CheckoutPage items={cart} onBackToHome={() => handleNavigate('home')} addToast={addToast} availablePaymentOptions={availablePaymentOptions} isDirectSale={isDirectSale} />;
+      case 'reseller-profile': return selectedSeller && <ResellerProfilePage seller={selectedSeller} allProducts={products} onNavigate={handleNavigate} onViewDetails={handleViewDetails} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} onViewSellerProfile={handleViewSellerProfile} />;
+      case 'admin-login': return <AdminLoginPage onLogin={handleLoginSuccess} onBackToHome={() => handleNavigate('home')} />;
+      case 'admin-dashboard': return <AdminDashboardPage products={products} promoBannerData={promoBannerData} onUpdatePromoBanner={setPromoBannerData} heroSlides={heroSlides} onUpdateHeroSlides={setHeroSlides} />;
+      case 'seller-dashboard': return <SellerDashboardPage onLogout={handleLogout} onNavigate={handleNavigate} />;
+      case 'about': return <AboutPage />;
+      case 'careers': return <CareersPage />;
+      case 'blog': return <BlogPage />;
+      case 'contact': return <ContactPage addToast={addToast}/>;
+      case 'help-center': return <HelpCenterPage />;
+      case 'privacy-policy': return <PrivacyPolicyPage />;
+      case 'terms': return <TermsAndConditionsPage />;
+      default: return <HomePage products={products} onViewDetails={handleViewDetails} onAddToCart={handleAddToCart} onNavigate={handleNavigate} onSellClick={() => setSellModalOpen(true)} promoBannerData={promoBannerData} heroSlides={heroSlides} searchTerm={searchTerm} onBuyNow={handleBuyNow} onViewSellerProfile={handleViewSellerProfile} />;
+    }
+  };
+
+  const showHeaderFooter = activePage !== 'admin-login' && activePage !== 'admin-dashboard' && activePage !== 'seller-dashboard';
+
+  return (
+    <>
+      {showHeaderFooter && (
+        <Header
+          isAuthenticated={isAuthenticated}
+          userRole={userRole}
+          onLoginClick={() => setAuthModalOpen(true)}
+          onNavigate={handleNavigate}
+          activePage={activePage}
+          cartItemCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+          onLogout={handleLogout}
+          unreadMessageCount={unreadMessageCount}
+          onChatClick={() => setChatPanelOpen(true)}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearch}
+        />
+      )}
+      <main key={activePage} className={`animate-page-fade-in ${!showHeaderFooter ? '' : 'pt-0'}`}>
+        {renderPage()}
+      </main>
+      {showHeaderFooter && <Footer onNavigate={handleNavigate} addToast={addToast} />}
+
+      {/* Modals & Overlays */}
+      <AuthPage 
+        isOpen={isAuthModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        onAdminLoginClick={() => {
+            setAuthModalOpen(false);
+            handleNavigate('admin-login');
+        }}
+      />
+      <SellModal isOpen={isSellModalOpen} onClose={() => setSellModalOpen(false)} onAddProduct={handleAddProduct} />
+      <ProductDetailModal
+        isOpen={isProductModalOpen}
+        onClose={() => setProductModalOpen(false)}
+        product={selectedProduct}
+        products={products}
+        // Fix: Pass the 'handleAddToCart' function instead of the undefined 'onAddToCart'.
+        onAddToCart={handleAddToCart}
+        onViewDetails={handleViewDetails}
+        onSendMessage={handleSendMessageToSeller}
+        onBuyNow={handleBuyNow}
+        onViewSellerProfile={handleViewSellerProfile}
+      />
+       <ChatPanel
+            isOpen={isChatPanelOpen}
+            onClose={() => setChatPanelOpen(false)}
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            onSelectConversation={handleSelectConversation}
+            onSendMessage={handleSendMessage}
+            onBackToList={() => setActiveConversationId(null)}
+       />
+       <LoyaltyRedemptionModal
+            isOpen={isRedemptionModalOpen}
+            onClose={() => setRedemptionModalOpen(false)}
+            userPoints={loyaltyPoints}
+            onRedeem={handleRedeemPoints}
+        />
+
+       {/* AI Contact Center */}
+      <ContactCenterFab onClick={() => setInaContactCenterOpen(true)} />
+      <InaContactCenter isOpen={isInaContactCenterOpen} onClose={() => setInaContactCenterOpen(false)} />
+
+      {/* Toasts Container */}
+      <div
+        aria-live="assertive"
+        className="fixed inset-0 flex flex-col items-end px-4 py-6 space-y-4 pointer-events-none sm:p-6 sm:items-end z-50"
+      >
+        {toasts.map(toast => (
+          <Toast key={toast.id} toast={toast} onDismiss={removeToast} />
+        ))}
+      </div>
+      
+      {/* Global CSS for animations */}
+      <style>{`
+        @keyframes scale-in { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .animate-scale-in { animation: scale-in 0.3s ease-out forwards; }
         
-        setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, messages: [...c.messages, newMessage], unreadByBuyer: false } : c));
+        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+        .animate-fade-in-backdrop { animation: fade-in 0.3s ease-out forwards; }
+
+        @keyframes dropdown-enter { 0% { transform: scaleY(0.95); opacity: 0; } 100% { transform: scaleY(1); opacity: 1; } }
+        .animate-dropdown-enter { animation: dropdown-enter 0.1s ease-out forwards; transform-origin: top; }
         
-        // Simulate seller response
-        setTimeout(() => {
-            const sellerMessage = {
-                id: crypto.randomUUID(),
-                sender: 'seller' as const,
-                text: 'Terima kasih telah menghubungi kami. Segera kami balas ya.',
-                timestamp: new Date().toISOString()
-            };
-            setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, messages: [...c.messages, sellerMessage], unreadByBuyer: true } : c));
-        }, 1500);
-    };
+        @keyframes slide-in-left { 0% { transform: translateX(-100%); } 100% { transform: translateX(0); } }
+        .animate-slide-in-left { animation: slide-in-left 0.3s ease-out forwards; }
 
-    const handleSellClick = () => {
-        if (isAuthenticated && userRole === 'Seller') {
-            setSellModalOpen(true);
-        } else {
-            addToast('info', 'Anda harus masuk sebagai penjual untuk menambahkan produk.');
-            setAuthModalOpen(true);
+        @keyframes auth-modal-enter { 0% { transform: scale(0.95) translateY(10px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        .animate-auth-modal-enter { animation: auth-modal-enter 0.2s ease-out forwards; }
+
+        @keyframes step-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+        .animate-step-in { animation: step-in 0.4s ease-out forwards; }
+
+        @keyframes flash-bg { 0% { background-color: transparent; } 50% { background-color: #e0f2f1; } 100% { background-color: transparent; } }
+        .animate-flash-bg { animation: flash-bg 0.6s ease-in-out; }
+        
+        @keyframes slide-up { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
+        .animate-slide-up { animation: slide-up 0.3s ease-out forwards; }
+
+        .range-slider-thumb::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 1.25rem;
+          height: 1.25rem;
+          background: #0d9488;
+          cursor: pointer;
+          border-radius: 9999px;
+          border: 2px solid white;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          pointer-events: auto;
+          margin-top: -8px; 
         }
-    };
-
-    const handleUpdatePromoBanner = (newData: PromoBannerData) => {
-        setPromoBannerData(newData);
-        addToast('success', 'Banner promosi berhasil diperbarui.');
-    };
-
-    const handleUpdateHeroSlides = (newSlides: HeroSlide[]) => {
-        setHeroSlides(newSlides);
-        addToast('success', 'Carousel atas berhasil diperbarui.');
-    };
-
-    const handleToggleDirectSale = () => {
-        setIsDirectSale(prev => !prev);
-        addToast('info', `Mode Transaksi Langsung ${!isDirectSale ? 'diaktifkan' : 'dinonaktifkan'}.`);
-    };
-
-    const renderPage = () => {
-        switch(page) {
-            case 'home':
-                return (
-                    <>
-                        <Hero onNavigate={handleNavigate} slides={heroSlides} />
-                        <CollapsibleCategorySection title="Kategori Pilihan" bgColorClass="bg-white" defaultOpen={true}>
-                            <CategoryGrid categories={ALL_CATEGORIES} onCategorySelect={handleCategorySelect} />
-                        </CollapsibleCategorySection>
-                        
-                        {promoProducts.length > 0 && (
-                            <section className="py-8 bg-gray-50">
-                              <div className="container mx-auto px-4">
-                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Produk Promosi</h2>
-                                <ProductGrid products={promoProducts} onViewDetails={handleViewDetails} />
-                              </div>
-                            </section>
-                        )}
-                        <section className="py-8 bg-white">
-                          <div className="container mx-auto px-4">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-6">Produk Unggulan</h2>
-                            <ProductGrid products={featuredProducts} onViewDetails={handleViewDetails} />
-                          </div>
-                        </section>
-                        
-                        {newProducts.length > 0 && (
-                            <section className="py-8 bg-gray-50">
-                              <div className="container mx-auto px-4">
-                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Produk Terbaru</h2>
-                                <ProductGrid products={newProducts} onViewDetails={handleViewDetails} />
-                              </div>
-                            </section>
-                        )}
-                        
-                        {recommendedProducts.length > 0 && (
-                            <section className="py-8 bg-white">
-                              <div className="container mx-auto px-4">
-                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Rekomendasi untuk Anda</h2>
-                                <ProductGrid products={recommendedProducts} onViewDetails={handleViewDetails} />
-                              </div>
-                            </section>
-                        )}
-
-                        <PromoBanner data={promoBannerData} />
-
-                        <section id="product-section" className="py-8 bg-white">
-                          <div className="container mx-auto px-4">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-6">Jelajahi Produk UMKM</h2>
-                            
-                             {/* Mobile Filter Trigger */}
-                            <div className="lg:hidden mb-4">
-                                <button
-                                    onClick={() => setIsFilterOpen(true)}
-                                    className="w-full flex justify-between items-center bg-white p-3 rounded-lg shadow border transition-colors hover:bg-gray-50"
-                                >
-                                    <span className="flex items-center font-semibold text-gray-700">
-                                        <AdjustmentsHorizontalIcon className="w-5 h-5 mr-2 text-primary" />
-                                        Filter
-                                    </span>
-                                    {activeFilterCount > 0 && (
-                                        <span className="bg-primary text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center animate-scale-in">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </button>
-                            </div>
-
-                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-                                <div className="hidden lg:block lg:col-span-1 sticky top-24">
-                                    <FilterBar 
-                                        filters={filters}
-                                        onFilterChange={handleFilterChange}
-                                        maxPrice={1500000}
-                                        locations={LOCATIONS}
-                                        onReset={resetFilters}
-                                        availableLocations={availableLocations}
-                                        showPriceFilter={showPriceFilter}
-                                    />
-                                </div>
-                                <div className="lg:col-span-3">
-                                   {filteredProducts.length > 0 ? (
-                                        <ProductGrid products={filteredProducts} onViewDetails={handleViewDetails} />
-                                   ) : (
-                                        <div className="text-center py-16">
-                                            <p className="text-gray-600 font-semibold text-lg">Oops! Tidak ada produk yang cocok.</p>
-                                            <p className="text-gray-500 mt-2">Coba ubah atau reset filter Anda.</p>
-                                        </div>
-                                   )}
-                                </div>
-                             </div>
-                          </div>
-                        </section>
-                        <BottomCarousel onNavigate={handleNavigate} onSellClick={handleSellClick} />
-                    </>
-                );
-            case 'cart':
-            case 'profile':
-                return <CartPage items={cartItems} onUpdateQuantity={handleUpdateCartQuantity} onRemoveItem={handleRemoveFromCart} onCheckout={() => handleNavigate('checkout')} onStartShopping={() => handleNavigate('home')} isDirectSale={isDirectSale} onToggleDirectSale={handleToggleDirectSale} />;
-            case 'checkout':
-                const sellersInCart = [...new Set(cartItems.map(item => item.seller))];
-                let availablePaymentOptions: PaymentOptions = {
-                    qris: false,
-                    virtualAccounts: { bca: false, mandiri: false, bri: false, bni: false },
-                    eWallets: { gopay: false, ovo: false, shopeePay: false, dana: false, linkAja: false }
-                };
-
-                if (sellersInCart.length > 0) {
-                    const firstSellerOptions = sellerPaymentConfigs[sellersInCart[0]];
-                    if (firstSellerOptions) {
-                        availablePaymentOptions = JSON.parse(JSON.stringify(firstSellerOptions));
-                        for (let i = 1; i < sellersInCart.length; i++) {
-                            const currentSellerOptions = sellerPaymentConfigs[sellersInCart[i]];
-                            if (currentSellerOptions) {
-                                availablePaymentOptions.qris &&= currentSellerOptions.qris;
-                                (Object.keys(availablePaymentOptions.virtualAccounts) as Array<keyof typeof availablePaymentOptions.virtualAccounts>).forEach(key => {
-                                    availablePaymentOptions.virtualAccounts[key] &&= currentSellerOptions.virtualAccounts[key];
-                                });
-                                (Object.keys(availablePaymentOptions.eWallets) as Array<keyof typeof availablePaymentOptions.eWallets>).forEach(key => {
-                                    availablePaymentOptions.eWallets[key] &&= currentSellerOptions.eWallets[key];
-                                });
-                            }
-                        }
-                    }
-                }
-                
-                return (
-                    <CheckoutPage 
-                        items={cartItems} 
-                        onBackToHome={() => { setCartItems([]); handleNavigate('home'); addToast('success', 'Pesanan Anda berhasil dibuat!'); }} 
-                        cartItemCount={totalCartItemCount} 
-                        onLogout={handleLogout} 
-                        isAuthenticated={isAuthenticated} 
-                        onLoginClick={() => setAuthModalOpen(true)} 
-                        onNavigate={handleNavigate} 
-                        unreadMessageCount={unreadMessageCount} 
-                        onChatClick={() => setChatOpen(true)} 
-                        addToast={addToast}
-                        availablePaymentOptions={availablePaymentOptions}
-                        isDirectSale={isDirectSale}
-                    />
-                );
-            case 'dashboard':
-                if (isAuthenticated && userRole === 'Seller') {
-                    return <SellerDashboardPage />;
-                }
-                handleNavigate('home'); // Redirect if not authorized
-                return null;
-            case 'admin-dashboard':
-                 if (isAuthenticated && userRole === 'Admin') {
-                    return <AdminDashboardPage 
-                                promoBannerData={promoBannerData} 
-                                onUpdatePromoBanner={handleUpdatePromoBanner}
-                                heroSlides={heroSlides}
-                                onUpdateHeroSlides={handleUpdateHeroSlides}
-                            />;
-                }
-                handleNavigate('home'); // Redirect if not authorized
-                return null;
-            case 'admin-login':
-                return <AdminLoginPage onLogin={handleLoginSuccess} onBackToHome={() => handleNavigate('home')} />;
-            case 'about':
-                return <AboutPage />;
-            case 'careers':
-                return <CareersPage />;
-            case 'blog':
-                return <BlogPage />;
-            case 'contact':
-                return <ContactPage addToast={addToast} />;
-            case 'help-center':
-                return <HelpCenterPage />;
-            case 'privacy-policy':
-                return <PrivacyPolicyPage />;
-            case 'terms':
-                return <TermsAndConditionsPage />;
-            default:
-                return null;
+        .range-slider-thumb::-moz-range-thumb {
+          width: 1.25rem;
+          height: 1.25rem;
+          background: #0d9488;
+          cursor: pointer;
+          border-radius: 9999px;
+          border: 2px solid white;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          pointer-events: auto;
         }
-    };
-
-    return (
-        <div className="flex flex-col min-h-screen bg-white">
-            {page !== 'admin-login' && page !== 'admin-dashboard' && (
-                 <Header
-                    isAuthenticated={isAuthenticated}
-                    userRole={userRole}
-                    onLoginClick={() => setAuthModalOpen(true)}
-                    onNavigate={handleNavigate}
-                    activePage={page}
-                    cartItemCount={totalCartItemCount}
-                    onLogout={handleLogout}
-                    unreadMessageCount={unreadMessageCount}
-                    onChatClick={() => setChatOpen(!isChatOpen)}
-                 />
-            )}
-           
-            <main className="flex-grow">
-                {renderPage()}
-            </main>
-            
-            {page !== 'admin-login' && page !== 'admin-dashboard' && <Footer onNavigate={handleNavigate} addToast={addToast} />}
-
-            {/* Mobile Filter Overlay */}
-            {isFilterOpen && (
-                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex flex-col justify-end lg:hidden animate-fade-in" onClick={() => setIsFilterOpen(false)}>
-                    <div 
-                        className="bg-gray-50 rounded-t-2xl shadow-lg max-h-[85vh] flex flex-col animate-slide-up"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <div className="p-4 border-b flex justify-between items-center flex-shrink-0 bg-white rounded-t-2xl">
-                            <h2 className="text-xl font-bold text-gray-800">Filter</h2>
-                            <button onClick={() => setIsFilterOpen(false)} className="p-1 text-gray-400 hover:text-gray-600">
-                                <CloseIcon className="w-6 h-6" />
-                            </button>
-                        </div>
-                        <div className="overflow-y-auto">
-                            <FilterBar 
-                                filters={filters}
-                                onFilterChange={handleFilterChange}
-                                maxPrice={1500000}
-                                locations={LOCATIONS}
-                                onReset={resetFilters}
-                                availableLocations={availableLocations}
-                                showPriceFilter={showPriceFilter}
-                            />
-                        </div>
-                         <div className="p-4 border-t bg-white flex-shrink-0">
-                            <button onClick={() => setIsFilterOpen(false)} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-lg shadow-sm transition-colors">
-                                Lihat Hasil
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Modals and Overlays */}
-            <SellModal isOpen={isSellModalOpen} onClose={() => setSellModalOpen(false)} />
-            <AuthPage isOpen={isAuthModalOpen} onClose={() => setAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} onAdminLoginClick={() => { setAuthModalOpen(false); handleNavigate('admin-login'); }} />
-            <ProductDetailModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onAddToCart={handleAddToCart} onStartChat={handleStartChat} />
-            <ChatPanel
-                isOpen={isChatOpen}
-                onClose={() => setChatOpen(false)}
-                conversations={conversations}
-                activeConversationId={activeConversationId}
-                onSelectConversation={id => setActiveConversationId(id)}
-                onSendMessage={handleSendMessage}
-                onBackToList={() => setActiveConversationId(null)}
-            />
-            {page !== 'admin-login' && <ContactCenterFab onClick={() => setContactCenterOpen(true)} />}
-            <InaContactCenter isOpen={isContactCenterOpen} onClose={() => setContactCenterOpen(false)} />
-             <div
-              aria-live="assertive"
-              className="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-50"
-            >
-              <div className="w-full flex flex-col items-center space-y-4 sm:items-end">
-                {toasts.map((toast) => (
-                  <Toast key={toast.id} toast={toast} onDismiss={removeToast} />
-                ))}
-              </div>
-            </div>
-        </div>
-    );
+      `}</style>
+    </>
+  );
 };
 
 export default App;

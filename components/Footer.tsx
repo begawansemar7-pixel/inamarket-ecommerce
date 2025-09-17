@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ToastMessage } from '../types';
+// Fix: Import the centralized 'Page' type to ensure type consistency for navigation.
+import { ToastMessage, Page } from '../types';
 import { PaperAirplaneIcon, FacebookIcon, InstagramIcon, XIcon } from './icons/Icons';
 
 
-type Page = 'home' | 'cart' | 'dashboard' | 'profile' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms';
+// Fix: Remove the local 'Page' type definition in favor of the centralized one from types.ts.
 
 interface FooterProps {
     onNavigate: (page: Page) => void;

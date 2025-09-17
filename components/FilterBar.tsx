@@ -14,6 +14,7 @@ interface FilterSidebarProps {
   onReset: () => void;
   availableLocations: string[];
   showPriceFilter: boolean;
+  categories: { name: string }[];
 }
 
 const formatRupiah = (price: number): string => {
@@ -41,7 +42,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     locations,
     onReset,
     availableLocations,
-    showPriceFilter
+    showPriceFilter,
+    categories
 }) => {
   const [localFilters, setLocalFilters] = useState(filters);
 
@@ -97,6 +99,37 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       )}
 
       <div className="mt-4">
+        <FilterAccordion title="Kategori" defaultOpen={true} isActive={isCategoryActive}>
+            <div className="flex flex-col space-y-1 pt-2 max-h-60 overflow-y-auto">
+                <button
+                  onClick={() => handleLocalFilterChange('category', 'all')}
+                  className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                    localFilters.category === 'all'
+                      ? 'bg-primary text-white font-semibold shadow-sm'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  Semua Kategori
+                </button>
+                {categories.map((category) => {
+                  const isSelected = localFilters.category === category.name;
+                  return (
+                    <button
+                      key={category.name}
+                      onClick={() => handleLocalFilterChange('category', category.name)}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                        isSelected
+                          ? 'bg-primary text-white font-semibold shadow-sm'
+                          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  );
+                })}
+            </div>
+        </FilterAccordion>
+
         {showPriceFilter && (
             <FilterAccordion title="Harga" defaultOpen={true} isActive={isPriceActive}>
                 <div className="pt-4 px-1">

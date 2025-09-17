@@ -32,12 +32,15 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
     paymentMethod === 'qris' ? 'awaiting_payment' : 'confirmed'
   );
   
-  const { subtotal, platformFee, promotionFee, total } = useMemo(() => {
+  const { subtotal, platformFee, promotionFee, total, earnedPoints, goldSavingsValue } = useMemo(() => {
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const platformFee = subtotal * 0.05;
     const promotionFee = isDirectSale ? subtotal * 0.10 : 0;
     const total = subtotal + shippingOption.price + platformFee + promotionFee;
-    return { subtotal, platformFee, promotionFee, total };
+    const marketMargin = subtotal * 0.05;
+    const earnedPoints = Math.floor(marketMargin * 0.5);
+    const goldSavingsValue = marketMargin * 0.5;
+    return { subtotal, platformFee, promotionFee, total, earnedPoints, goldSavingsValue };
   }, [items, shippingOption, isDirectSale]);
 
   const orderId = useMemo(() => `INAMarket-${Date.now()}`, []);
@@ -119,6 +122,18 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         </div>
       </div>
       
+      {isPaymentComplete && (earnedPoints > 0 || goldSavingsValue > 0) && (
+          <div className="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-lg text-center animate-step-in space-y-2">
+              <p className="font-semibold text-teal-800 text-lg">🎉 Selamat! Anda mendapatkan keuntungan loyalti:</p>
+              <div className="text-teal-700">
+                <span className="font-bold">{earnedPoints.toLocaleString('id-ID')} Poin Loyalti</span> telah ditambahkan ke akun Anda.
+              </div>
+              <div className="text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-md py-1 px-2 inline-block">
+                <span className="font-bold">{formatRupiah(goldSavingsValue)}</span> telah ditambahkan ke Tabungan Emas Anda.
+              </div>
+          </div>
+      )}
+
       <div className="text-left bg-white border border-gray-200 rounded-lg p-6 space-y-6">
         {renderPaymentDetails()}
 

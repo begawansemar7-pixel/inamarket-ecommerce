@@ -1,18 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Product, DeliveryOptions, BusinessService, PaymentOptions } from '../types';
+// Fix: Import the centralized 'Page' type to ensure type consistency for navigation.
+import { Product, DeliveryOptions, BusinessService, PaymentOptions, Page } from '../types';
 import { PRODUCTS, SERVICES } from '../constants'; // For dummy data
 import AddProductModal from '../components/AddProductModal';
-import { PlusCircleIcon, InformationCircleIcon, CloseIcon, ShoppingCartIcon, TruckIcon, WrenchScrewdriverIcon, CreditCardIcon, BanknotesIcon } from '../components/icons/Icons';
+import { PlusCircleIcon, InformationCircleIcon, CloseIcon, ShoppingCartIcon, TruckIcon, WrenchScrewdriverIcon, CreditCardIcon, BanknotesIcon, DatabaseIcon, HomeIcon, ArrowLeftOnRectangleIcon } from '../components/icons/Icons';
 import ProductManagementView from '../components/seller/ProductManagementView';
 import DeliveryManagementView from '../components/seller/DeliveryManagementView';
 import ServiceManagementView from '../components/seller/ServiceManagementView';
 import PaymentManagementView from '../components/seller/PaymentManagementView';
 import AccountingView from '../components/seller/AccountingView';
+import DatabaseIntegrationView from '../components/seller/DatabaseIntegrationView';
 
-type SellerView = 'products' | 'delivery' | 'services' | 'payment' | 'accounting';
+type SellerView = 'products' | 'delivery' | 'services' | 'payment' | 'accounting' | 'database';
+// Fix: Remove the local 'Page' type definition in favor of the centralized one from types.ts.
 
-const SellerDashboardPage: React.FC = () => {
-  const [activeView, setActiveView] = useState<SellerView>('accounting');
+interface SellerDashboardPageProps {
+  onLogout: () => void;
+  onNavigate: (page: Page) => void;
+}
+
+const SellerDashboardPage: React.FC<SellerDashboardPageProps> = ({ onLogout, onNavigate }) => {
+  const [activeView, setActiveView] = useState<SellerView>('database');
   const [myProducts, setMyProducts] = useState<Product[]>(
     PRODUCTS.filter(p => p.seller === 'Kopi Kita' || p.seller === 'Batik Indah' || p.seller === 'Kulit Asli')
   );
@@ -152,6 +160,8 @@ const SellerDashboardPage: React.FC = () => {
               );
           case 'accounting':
               return <AccountingView products={myProducts} />;
+          case 'database':
+              return <DatabaseIntegrationView />;
           default:
               return null;
       }
@@ -184,9 +194,27 @@ const SellerDashboardPage: React.FC = () => {
         </div>
       )}
       
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Dasbor Penjual</h1>
-        <p className="text-gray-500">Kelola produk, pesanan, dan pengiriman toko Anda.</p>
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Dasbor Penjual</h1>
+          <p className="text-gray-500">Kelola produk, pesanan, dan pengiriman toko Anda.</p>
+        </div>
+        <div className="flex items-center space-x-2 self-start sm:self-center">
+          <button
+            onClick={() => onNavigate('home')}
+            className="flex items-center bg-white border border-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-md transition-colors hover:bg-gray-100 shadow-sm"
+          >
+            <HomeIcon className="w-5 h-5 mr-2" />
+            Beranda
+          </button>
+          <button
+            onClick={onLogout}
+            className="flex items-center bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-md transition-colors shadow-sm"
+          >
+            <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
+            Keluar
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-8">
@@ -199,6 +227,7 @@ const SellerDashboardPage: React.FC = () => {
                       <SidebarItem label="Jasa" view="services" icon={WrenchScrewdriverIcon} />
                       <SidebarItem label="Pembayaran" view="payment" icon={CreditCardIcon} />
                       <SidebarItem label="Akunting" view="accounting" icon={BanknotesIcon} />
+                      <SidebarItem label="Integrasi DB" view="database" icon={DatabaseIcon} />
                   </ul>
               </nav>
           </div>

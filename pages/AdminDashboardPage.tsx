@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { ChartPieIcon, UserGroupIcon, ImageIcon, Cog6ToothIcon, TagIcon, NewspaperIcon } from '../components/icons/Icons';
 import DashboardView from '../components/admin/DashboardView';
 import SellerApprovalView from '../components/admin/SellerApprovalView';
 import CarouselManagementView from '../components/admin/CarouselManagementView';
 import PromoBannerManagementView from '../components/admin/PromoBannerManagementView';
-import { PromoBannerData, HeroSlide, AdminUser, BlogPost } from '../types';
+import { Product, PromoBannerData, HeroSlide, AdminUser, BlogPost } from '../types';
 import HeroCarouselManagementView from '../components/admin/HeroCarouselManagementView';
 import SettingsView from '../components/admin/SettingsView';
 import BlogManagementView from '../components/admin/BlogManagementView';
@@ -13,6 +14,7 @@ import { BLOG_POSTS } from '../constants';
 type AdminView = 'dashboard' | 'sellers' | 'carousel' | 'promo-banner' | 'settings' | 'hero-carousel' | 'blog';
 
 interface AdminDashboardPageProps {
+  products: Product[];
   promoBannerData: PromoBannerData;
   onUpdatePromoBanner: (newData: PromoBannerData) => void;
   heroSlides: HeroSlide[];
@@ -26,7 +28,7 @@ const initialAdminUsers: AdminUser[] = [
   { id: 4, name: 'Dedi Layanan', email: 'dedi.cs@inamarket.com', role: 'Admin Layanan' },
 ];
 
-const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ promoBannerData, onUpdatePromoBanner, heroSlides, onUpdateHeroSlides }) => {
+const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ products, promoBannerData, onUpdatePromoBanner, heroSlides, onUpdateHeroSlides }) => {
   const [activeView, setActiveView] = useState<AdminView>('dashboard');
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>(initialAdminUsers);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(BLOG_POSTS);
@@ -74,7 +76,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ promoBannerData
   const renderContent = () => {
     switch (activeView) {
       case 'dashboard':
-        return <DashboardView />;
+        return <DashboardView products={products} />;
       case 'sellers':
         return <SellerApprovalView />;
       case 'blog':

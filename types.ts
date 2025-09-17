@@ -1,3 +1,4 @@
+import type React from 'react';
 import { FileWithPath } from 'react-dropzone';
 
 export type VerificationStatus = 'verified' | 'unverified';
@@ -8,6 +9,20 @@ export interface Review {
   date: string;
   rating: number; // 1 to 5
   comment: string;
+}
+
+export interface SellerReview extends Review {}
+
+export interface Seller {
+    name: string;
+    logoUrl: string;
+    coverImageUrl: string;
+    tagline: string;
+    description: string;
+    location: string;
+    joinedDate: string;
+    verification: VerificationStatus;
+    reviews: SellerReview[];
 }
 
 export interface Product {
@@ -188,4 +203,15 @@ export interface BlogPost {
   datetime: string;
   category: BlogCategory;
   author: BlogAuthor;
+}
+
+// Defines the primary navigation identifiers used throughout the application, ensuring type-safe routing.
+export type Page = 'home' | 'cart' | 'checkout' | 'admin-login' | 'admin-dashboard' | 'seller-dashboard' | 'about' | 'careers' | 'blog' | 'contact' | 'help-center' | 'privacy-policy' | 'terms' | 'profile' | 'dashboard' | 'reseller-profile';
+
+export interface RedemptionOption {
+  id: string;
+  name: string;
+  description: string;
+  pointsRequired: number;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
