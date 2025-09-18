@@ -49,7 +49,7 @@ const Hero: React.FC<HeroProps> = ({ onNavigate, slides }) => {
       {slides.map((slide, slideIndex) => (
         <div
           key={slide.id}
-          className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
+          className={`absolute inset-0 w-full h-full hero-slide-transition ${
             slideIndex === currentIndex ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -108,6 +108,9 @@ const Hero: React.FC<HeroProps> = ({ onNavigate, slides }) => {
         ))}
       </div>
        <style>{`
+        .hero-slide-transition {
+          transition: opacity 1s ease-in-out;
+        }
         @keyframes fade-in-down {
           0% { opacity: 0; transform: translateY(-20px); }
           100% { opacity: 1; transform: translateY(0); }
